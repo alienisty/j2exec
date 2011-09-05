@@ -780,8 +780,8 @@ public class DefaultExecutorTest extends TestCase {
         }
 
         CommandLine cmdl;
-        File file = new File("/Documents and Settings/myusername/Local Settings/Temp/netfx.log");
-        Map<String, Object> map = new HashMap<String, Object>();
+        String file = "/Documents and Settings/myusername/Local Settings/Temp/netfx.log";
+        Map<String, String> map = new HashMap<String, String>();
         map.put("FILE", file);
 
         cmdl = new CommandLine(printArgsScript);

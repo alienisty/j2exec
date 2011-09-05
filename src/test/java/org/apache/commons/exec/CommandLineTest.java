@@ -18,10 +18,12 @@
 
 package org.apache.commons.exec;
 
-import java.io.File;
+import static java.util.Collections.singletonMap;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
@@ -237,7 +239,7 @@ public class CommandLineTest extends TestCase {
 	 * do that without adding a space, e.g. "500x> ".
 	 */
 	public void testParseComplexCommandLine1() {
-		HashMap<String, Object> substitutionMap = new HashMap<String, Object>();
+		HashMap<String, String> substitutionMap = new HashMap<String, String>();
 		substitutionMap.put("in", "source.jpg");
 		substitutionMap.put("out", "target.jpg");
 		CommandLine cmdl = CommandLine.parse(
@@ -339,14 +341,14 @@ public class CommandLineTest extends TestCase {
 
 		CommandLine cmdl;
 
-		HashMap<String, Object> substitutionMap = new HashMap<String, Object>();
+		HashMap<String, String> substitutionMap = new HashMap<String, String>();
 		substitutionMap.put("JAVA_HOME", "/usr/local/java");
 		substitutionMap.put("appMainClass", "foo.bar.Main");
-		substitutionMap.put("file1", new File("./pom.xml"));
-		substitutionMap.put("file2", new File(".\\temp\\READ ME.txt"));
+		substitutionMap.put("file1", "./pom.xml");
+		substitutionMap.put("file2", ".\\temp\\READ ME.txt");
 
-		HashMap<String, Object> incompleteMap = new HashMap<String, Object>();
-		incompleteMap.put("JAVA_HOME", "/usr/local/java");
+		Map<String, String> incompleteMap = singletonMap("JAVA_HOME",
+				"/usr/local/java");
 
 		// do not pass substitution map
 		cmdl = CommandLine.parse("${JAVA_HOME}/bin/java ${appMainClass}");
@@ -355,7 +357,7 @@ public class CommandLineTest extends TestCase {
 
 		// pass arguments with an empty map
 		cmdl = CommandLine.parse("${JAVA_HOME}/bin/java ${appMainClass}",
-				Collections.<String, Object>emptyMap());
+				Collections.<String, String> emptyMap());
 		assertTrue(cmdl.getExecutable().indexOf("${JAVA_HOME}") == 0);
 		assertEquals(new String[] { "${appMainClass}" }, cmdl.getArguments());
 
@@ -472,7 +474,7 @@ public class CommandLineTest extends TestCase {
 	 */
 	public void testToString() throws Exception {
 		CommandLine cmdl;
-		HashMap<String, Object> params = new HashMap<String, Object>();
+		HashMap<String, String> params = new HashMap<String, String>();
 
 		// use no arguments
 		cmdl = CommandLine.parse("AcroRd32.exe", params);

@@ -36,6 +36,8 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  */
 public class CommandLine {
 
+	private ProcessBuilder builder;
+	
 	/**
 	 * The arguments of the command.
 	 */
@@ -49,7 +51,7 @@ public class CommandLine {
 	/**
 	 * A map of name value pairs used to expand command line arguments
 	 */
-	private final Map<String, Object> substitutionMap = new HashMap<String, Object>();
+	private final Map<String, String> substitutionMap = new HashMap<String, String>();
 
 	/**
 	 * Create a command line from a string.
@@ -62,7 +64,7 @@ public class CommandLine {
 	 *             If line is null or all whitespace
 	 */
 	public static CommandLine parse(final String line) {
-		return parse(line, Collections.<String, Object> emptyMap());
+		return parse(line, Collections.<String, String> emptyMap());
 	}
 
 	/**
@@ -78,7 +80,7 @@ public class CommandLine {
 	 *             If line is null or all whitespace
 	 */
 	public static CommandLine parse(final String line,
-			Map<String, Object> substitutionMap) {
+			Map<String, String> substitutionMap) {
 
 		if (line == null) {
 			throw new IllegalArgumentException("Command line can not be null");
@@ -103,7 +105,7 @@ public class CommandLine {
 	 *            the executable
 	 */
 	public CommandLine(String executable) {
-		this(getExecutable(executable), Collections.<String, Object> emptyMap());
+		this(getExecutable(executable), Collections.<String, String> emptyMap());
 	}
 
 	/**
@@ -129,17 +131,21 @@ public class CommandLine {
 	}
 
 	public CommandLine(@NonNull String executable,
-			@NonNull Map<String, Object> substitutionMap) {
+			@NonNull Map<String, String> substitutionMap) {
 		this(getExecutable(executable), false, Collections
 				.<Argument> emptyList(), substitutionMap);
 	}
 
 	private CommandLine(@NonNull String executable, boolean isFile,
 			@NonNull List<Argument> arguments,
-			@NonNull Map<String, Object> substitutionMap) {
+			@NonNull Map<String, String> substitutionMap) {
 		this.executable = executable;
 		this.substitutionMap.putAll(substitutionMap);
 		this.arguments.addAll(arguments);
+	}
+	
+	public void start() {
+		
 	}
 
 	/**
@@ -281,7 +287,7 @@ public class CommandLine {
 	/**
 	 * @return the substitution map
 	 */
-	public Map<String, Object> getSubstitutionMap() {
+	public Map<String, String> getSubstitutionMap() {
 		return Collections.unmodifiableMap(substitutionMap);
 	}
 
@@ -295,7 +301,7 @@ public class CommandLine {
 		substitutionMap.putAll(substitutions);
 	}
 
-	public void setSubstitution(@NonNull String key, @NonNull Object value) {
+	public void setSubstitution(@NonNull String key, @NonNull String value) {
 		substitutionMap.put(key, value);
 	}
 

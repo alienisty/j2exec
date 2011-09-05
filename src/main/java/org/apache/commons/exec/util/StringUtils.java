@@ -20,7 +20,6 @@ package org.apache.commons.exec.util;
 
 import static java.io.File.separatorChar;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +57,7 @@ public class StringUtils {
 	 * <li>underscore character
 	 * </ul>
 	 * 
-	 * @param argStr
+	 * @param str
 	 *            the argument string to be processed
 	 * @param vars
 	 *            name/value pairs used for substitution
@@ -66,93 +65,61 @@ public class StringUtils {
 	 *            ignore a key not found in vars or throw a RuntimeException?
 	 * @return String target string with replacements.
 	 */
-	public static String stringSubstitution(@NonNull String argStr,
-			@NonNull Map<String, ?> vars, boolean isLenient) {
-		
-		if (vars.isEmpty()) {
-			return argStr;
+	public static String stringSubstitution(@NonNull String str,
+			@NonNull Map<String, String> vars, boolean isLenient) {
+
+		if (vars.isEmpty() && isLenient) {
+			return str;
 		}
 
-		int argStrLength = argStr.length();
-
-		StringBuilder argBuf = new StringBuilder(argStrLength);
-
-		for (int cIdx = 0; cIdx < argStrLength;) {
-
-			char ch = argStr.charAt(cIdx);
-			char del = ' ';
-
-			switch (ch) {
-
-			case '$':
-				StringBuilder nameBuf = new StringBuilder();
-				del = argStr.charAt(cIdx + 1);
-				if (del == '{') {
-					cIdx++;
-
-					for (++cIdx; cIdx < argStr.length(); ++cIdx) {
-						ch = argStr.charAt(cIdx);
-						if (ch == '_' || ch == '.' || ch == '-' || ch == '+'
-								|| Character.isLetterOrDigit(ch))
-							nameBuf.append(ch);
-						else
-							break;
-					}
-
-					if (nameBuf.length() >= 0) {
-
-						String value;
-						Object temp = vars.get(nameBuf.toString());
-
-						if (temp instanceof File) {
-							// for a file we have to fix the separator chars to
-							// allow
-							// cross-platform compatibility
-							value = fixFileSeparatorChar(((File) temp)
-									.getAbsolutePath());
-						} else {
-							value = (temp != null ? temp.toString() : null);
-						}
-
-						if (value != null) {
-							argBuf.append(value);
-						} else {
-							if (isLenient) {
-								// just append the unresolved variable
-								// declaration
-								argBuf.append("${").append(nameBuf.toString())
-										.append("}");
+		int strLength = str.length();
+		StringBuilder result = new StringBuilder(strLength);
+		
+		parse: for (int cIdx = 0; cIdx < strLength;) {
+			char ch;
+			if ((ch = str.charAt(cIdx++)) == '$') {
+				if ((ch = str.charAt(cIdx++)) == '{') { // look ahead
+					int vStart = cIdx;
+					while (++cIdx < strLength) {
+						switch (ch = str.charAt(cIdx)) {
+						case '}':
+							String name = str.substring(vStart, cIdx++);
+							String value = vars.get(name);
+							if (value == null) {
+								if (isLenient) {
+									result.append("${").append(name)
+											.append('}');
+								} else {
+									throw new RuntimeException(
+											"No value found for : " + name);
+								}
 							} else {
-								// complain that no variable was found
-								throw new RuntimeException(
-										"No value found for : " + nameBuf);
+								result.append(value);
+							}
+							continue parse;
+						case '_':
+						case '.':
+						case '+':
+						case '-':
+							continue;
+						default:
+							if (Character.isLetterOrDigit(ch)) {
+								continue;
 							}
 						}
-
-						del = argStr.charAt(cIdx);
-
-						if (del != '}') {
-							throw new RuntimeException(
-									"Delimiter not found for : " + nameBuf);
-						}
+						throw new RuntimeException("Syntax error at "
+								+ (cIdx + 1) + " in \"" + str + "\"");
 					}
-
-					cIdx++;
+					throw new RuntimeException("Delimiter not found for : "
+							+ str.substring(vStart, cIdx));
 				} else {
-					argBuf.append(ch);
-					++cIdx;
+					result.append('$');
 				}
-
-				break;
-
-			default:
-				argBuf.append(ch);
-				++cIdx;
-				break;
 			}
+			result.append(ch);
 		}
 
-		return argBuf.toString();
+		return result.toString();
 	}
 
 	/**
