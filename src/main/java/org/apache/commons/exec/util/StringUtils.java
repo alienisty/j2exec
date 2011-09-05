@@ -36,209 +36,208 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  */
 public class StringUtils {
 
-	private static final String SINGLE_QUOTE = "\'";
-	private static final String DOUBLE_QUOTE = "\"";
-	private static final char OTHER_SEPARATOR = separatorChar == '/' ? '\\'
-			: '/';
+   private static final String SINGLE_QUOTE = "\'";
+   private static final String DOUBLE_QUOTE = "\"";
+   private static final char OTHER_SEPARATOR = separatorChar == '/' ? '\\'
+         : '/';
 
-	/**
-	 * Perform a series of substitutions. The substitutions are performed by
-	 * replacing ${variable} in the target string with the value of provided by
-	 * the key "variable" in the provided hash table.
-	 * <p/>
-	 * <p/>
-	 * A key consists of the following characters:
-	 * <ul>
-	 * <li>letter
-	 * <li>digit
-	 * <li>dot character
-	 * <li>hyphen character
-	 * <li>plus character
-	 * <li>underscore character
-	 * </ul>
-	 * 
-	 * @param str
-	 *            the argument string to be processed
-	 * @param vars
-	 *            name/value pairs used for substitution
-	 * @param isLenient
-	 *            ignore a key not found in vars or throw a RuntimeException?
-	 * @return String target string with replacements.
-	 */
-	public static String stringSubstitution(@NonNull String str,
-			@NonNull Map<String, String> vars, boolean isLenient) {
+   /**
+    * Perform a series of substitutions. The substitutions are performed by
+    * replacing ${variable} in the target string with the value of provided by
+    * the key "variable" in the provided hash table.
+    * <p/>
+    * <p/>
+    * A key consists of the following characters:
+    * <ul>
+    * <li>letter
+    * <li>digit
+    * <li>dot character
+    * <li>hyphen character
+    * <li>plus character
+    * <li>underscore character
+    * </ul>
+    * 
+    * @param str
+    *           the argument string to be processed
+    * @param vars
+    *           name/value pairs used for substitution
+    * @param isLenient
+    *           ignore a key not found in vars or throw a RuntimeException?
+    * @return String target string with replacements.
+    */
+   public static String stringSubstitution(@NonNull String str,
+         @NonNull Map<String, String> vars, boolean isLenient) {
 
-		if (vars.isEmpty() && isLenient) {
-			return str;
-		}
+      if (vars.isEmpty() && isLenient) {
+         return str;
+      }
 
-		int strLength = str.length();
-		StringBuilder result = new StringBuilder(strLength);
-		
-		parse: for (int cIdx = 0; cIdx < strLength;) {
-			char ch;
-			if ((ch = str.charAt(cIdx++)) == '$') {
-				if ((ch = str.charAt(cIdx++)) == '{') { // look ahead
-					int vStart = cIdx;
-					while (++cIdx < strLength) {
-						switch (ch = str.charAt(cIdx)) {
-						case '}':
-							String name = str.substring(vStart, cIdx++);
-							String value = vars.get(name);
-							if (value == null) {
-								if (isLenient) {
-									result.append("${").append(name)
-											.append('}');
-								} else {
-									throw new RuntimeException(
-											"No value found for : " + name);
-								}
-							} else {
-								result.append(value);
-							}
-							continue parse;
-						case '_':
-						case '.':
-						case '+':
-						case '-':
-							continue;
-						default:
-							if (Character.isLetterOrDigit(ch)) {
-								continue;
-							}
-						}
-						throw new RuntimeException("Syntax error at "
-								+ (cIdx + 1) + " in \"" + str + "\"");
-					}
-					throw new RuntimeException("Delimiter not found for : "
-							+ str.substring(vStart, cIdx));
-				} else {
-					result.append('$');
-				}
-			}
-			result.append(ch);
-		}
+      int strLength = str.length();
+      StringBuilder result = new StringBuilder(strLength);
 
-		return result.toString();
-	}
+      parse: for (int cIdx = 0; cIdx < strLength;) {
+         char ch;
+         if ((ch = str.charAt(cIdx++)) == '$') {
+            if ((ch = str.charAt(cIdx++)) == '{') { // look ahead
+               int vStart = cIdx;
+               while (++cIdx < strLength) {
+                  switch (ch = str.charAt(cIdx)) {
+                  case '}':
+                     String name = str.substring(vStart, cIdx++);
+                     String value = vars.get(name);
+                     if (value == null) {
+                        if (isLenient) {
+                           result.append("${").append(name).append('}');
+                        } else {
+                           throw new RuntimeException("No value found for : "
+                                 + name);
+                        }
+                     } else {
+                        result.append(value);
+                     }
+                     continue parse;
+                  case '_':
+                  case '.':
+                  case '+':
+                  case '-':
+                     continue;
+                  default:
+                     if (Character.isLetterOrDigit(ch)) {
+                        continue;
+                     }
+                  }
+                  throw new RuntimeException("Syntax error at " + (cIdx + 1)
+                        + " in \"" + str + "\"");
+               }
+               throw new RuntimeException("Delimiter not found for : "
+                     + str.substring(vStart, cIdx));
+            } else {
+               result.append('$');
+            }
+         }
+         result.append(ch);
+      }
 
-	/**
-	 * Split a string into an array of strings based on a separator.
-	 * 
-	 * @param input
-	 *            what to split
-	 * @param splitChar
-	 *            what to split on
-	 * @return the array of strings
-	 */
-	public static String[] split(String input, char splitChar) {
-		List<String> strList = new ArrayList<String>();
-		for (int begin = 0, end = 0, length = input.length(); end < length;) {
-			if (input.charAt(end) == splitChar) {
-				strList.add(input.substring(begin, end));
-				end = begin = end + 1;
-			} else
-				end++;
-		}
-		return strList.toArray(new String[strList.size()]);
-	}
+      return result.toString();
+   }
 
-	/**
-	 * Fixes the file separator char for the target platform using the following
-	 * replacement.
-	 * 
-	 * <ul>
-	 * <li>'/' ==> File.separatorChar
-	 * <li>'\\' ==> File.separatorChar
-	 * </ul>
-	 * 
-	 * @param arg
-	 *            the argument to fix
-	 * @return the transformed argument
-	 */
-	public static String fixFileSeparatorChar(String arg) {
-		return arg.replace(OTHER_SEPARATOR, separatorChar);
-	}
+   /**
+    * Split a string into an array of strings based on a separator.
+    * 
+    * @param input
+    *           what to split
+    * @param splitChar
+    *           what to split on
+    * @return the array of strings
+    */
+   public static String[] split(String input, char splitChar) {
+      List<String> strList = new ArrayList<String>();
+      for (int begin = 0, end = 0, length = input.length(); end < length;) {
+         if (input.charAt(end) == splitChar) {
+            strList.add(input.substring(begin, end));
+            end = begin = end + 1;
+         } else
+            end++;
+      }
+      return strList.toArray(new String[strList.size()]);
+   }
 
-	/**
-	 * Concatenates an array of string using a separator.
-	 * 
-	 * @param strings
-	 *            the strings to concatenate
-	 * @param separator
-	 *            the separator between two strings
-	 * @return the concatenated strings
-	 */
-	public static String toString(String[] strings, String separator) {
-		StringBuffer sb = new StringBuffer();
-		for (int i = 0; i < strings.length; i++) {
-			if (i > 0) {
-				sb.append(separator);
-			}
-			sb.append(strings[i]);
-		}
-		return sb.toString();
-	}
+   /**
+    * Fixes the file separator char for the target platform using the following
+    * replacement.
+    * 
+    * <ul>
+    * <li>'/' ==> File.separatorChar
+    * <li>'\\' ==> File.separatorChar
+    * </ul>
+    * 
+    * @param arg
+    *           the argument to fix
+    * @return the transformed argument
+    */
+   public static String fixFileSeparatorChar(String arg) {
+      return arg.replace(OTHER_SEPARATOR, separatorChar);
+   }
 
-	/**
-	 * Put quotes around the given String if necessary.
-	 * <p>
-	 * If the argument doesn't include spaces or quotes, return it as is. If it
-	 * contains double quotes, use single quotes - else surround the argument by
-	 * double quotes.
-	 * </p>
-	 * 
-	 * @param argument
-	 *            the argument to be quoted
-	 * @return the quoted argument
-	 * @throws IllegalArgumentException
-	 *             If argument contains both types of quotes
-	 */
-	public static String quoteArgument(final String argument) {
+   /**
+    * Concatenates an array of string using a separator.
+    * 
+    * @param strings
+    *           the strings to concatenate
+    * @param separator
+    *           the separator between two strings
+    * @return the concatenated strings
+    */
+   public static String toString(String[] strings, String separator) {
+      StringBuffer sb = new StringBuffer();
+      for (int i = 0; i < strings.length; i++) {
+         if (i > 0) {
+            sb.append(separator);
+         }
+         sb.append(strings[i]);
+      }
+      return sb.toString();
+   }
 
-		String cleanedArgument = argument.trim();
+   /**
+    * Put quotes around the given String if necessary.
+    * <p>
+    * If the argument doesn't include spaces or quotes, return it as is. If it
+    * contains double quotes, use single quotes - else surround the argument by
+    * double quotes.
+    * </p>
+    * 
+    * @param argument
+    *           the argument to be quoted
+    * @return the quoted argument
+    * @throws IllegalArgumentException
+    *            If argument contains both types of quotes
+    */
+   public static String quoteArgument(final String argument) {
 
-		// strip the quotes from both ends
-		while (cleanedArgument.startsWith(SINGLE_QUOTE)
-				|| cleanedArgument.startsWith(DOUBLE_QUOTE)) {
-			cleanedArgument = cleanedArgument.substring(1);
-		}
+      String cleanedArgument = argument.trim();
 
-		while (cleanedArgument.endsWith(SINGLE_QUOTE)
-				|| cleanedArgument.endsWith(DOUBLE_QUOTE)) {
-			cleanedArgument = cleanedArgument.substring(0,
-					cleanedArgument.length() - 1);
-		}
+      // strip the quotes from both ends
+      while (cleanedArgument.startsWith(SINGLE_QUOTE)
+            || cleanedArgument.startsWith(DOUBLE_QUOTE)) {
+         cleanedArgument = cleanedArgument.substring(1);
+      }
 
-		final StringBuffer buf = new StringBuffer();
-		if (cleanedArgument.indexOf(DOUBLE_QUOTE) > -1) {
-			if (cleanedArgument.indexOf(SINGLE_QUOTE) > -1) {
-				throw new IllegalArgumentException(
-						"Can't handle single and double quotes in same argument");
-			} else {
-				return buf.append(SINGLE_QUOTE).append(cleanedArgument)
-						.append(SINGLE_QUOTE).toString();
-			}
-		} else if (cleanedArgument.indexOf(SINGLE_QUOTE) > -1
-				|| cleanedArgument.indexOf(" ") > -1) {
-			return buf.append(DOUBLE_QUOTE).append(cleanedArgument)
-					.append(DOUBLE_QUOTE).toString();
-		} else {
-			return cleanedArgument;
-		}
-	}
+      while (cleanedArgument.endsWith(SINGLE_QUOTE)
+            || cleanedArgument.endsWith(DOUBLE_QUOTE)) {
+         cleanedArgument = cleanedArgument.substring(0,
+               cleanedArgument.length() - 1);
+      }
 
-	/**
-	 * Determines if this is a quoted argument - either single or double quoted.
-	 * 
-	 * @param argument
-	 *            the argument to check
-	 * @return true when the argument is quoted
-	 */
-	public static boolean isQuoted(final String argument) {
-		return (argument.startsWith(SINGLE_QUOTE) && argument
-				.endsWith(SINGLE_QUOTE))
-				|| (argument.startsWith(DOUBLE_QUOTE) && argument
-						.endsWith(DOUBLE_QUOTE));
-	}
+      final StringBuffer buf = new StringBuffer();
+      if (cleanedArgument.indexOf(DOUBLE_QUOTE) > -1) {
+         if (cleanedArgument.indexOf(SINGLE_QUOTE) > -1) {
+            throw new IllegalArgumentException(
+                  "Can't handle single and double quotes in same argument");
+         } else {
+            return buf.append(SINGLE_QUOTE).append(cleanedArgument)
+                  .append(SINGLE_QUOTE).toString();
+         }
+      } else if (cleanedArgument.indexOf(SINGLE_QUOTE) > -1
+            || cleanedArgument.indexOf(" ") > -1) {
+         return buf.append(DOUBLE_QUOTE).append(cleanedArgument)
+               .append(DOUBLE_QUOTE).toString();
+      } else {
+         return cleanedArgument;
+      }
+   }
+
+   /**
+    * Determines if this is a quoted argument - either single or double quoted.
+    * 
+    * @param argument
+    *           the argument to check
+    * @return true when the argument is quoted
+    */
+   public static boolean isQuoted(final String argument) {
+      return (argument.startsWith(SINGLE_QUOTE) && argument
+            .endsWith(SINGLE_QUOTE))
+            || (argument.startsWith(DOUBLE_QUOTE) && argument
+                  .endsWith(DOUBLE_QUOTE));
+   }
 }

@@ -32,71 +32,69 @@ import org.apache.commons.exec.OS;
  */
 public class DefaultProcessingEnvironment {
 
-	/** the environment variables of the process */
-	protected Map<String, String> procEnvironment;
+   /** the environment variables of the process */
+   protected Map<String, String> procEnvironment;
 
-	/**
-	 * Find the list of environment variables for this process.
-	 * 
-	 * @return a map containing the environment variables
-	 * @throws IOException
-	 *             obtaining the environment variables failed
-	 */
-	public synchronized Map<String, String> getProcEnvironment()
-			throws IOException {
+   /**
+    * Find the list of environment variables for this process.
+    * 
+    * @return a map containing the environment variables
+    * @throws IOException
+    *            obtaining the environment variables failed
+    */
+   public synchronized Map<String, String> getProcEnvironment()
+         throws IOException {
 
-		if (procEnvironment == null) {
-			procEnvironment = this.createProcEnvironment();
-		}
+      if (procEnvironment == null) {
+         procEnvironment = this.createProcEnvironment();
+      }
 
-		// create a copy of the map just in case that
-		// anyone is going to modifiy it, e.g. removing
-		// or setting an evironment variable
-		Map<String, String> copy = createEnvironmentMap();
-		copy.putAll(procEnvironment);
-		return copy;
-	}
+      // create a copy of the map just in case that
+      // anyone is going to modifiy it, e.g. removing
+      // or setting an evironment variable
+      Map<String, String> copy = createEnvironmentMap();
+      copy.putAll(procEnvironment);
+      return copy;
+   }
 
-	/**
-	 * Find the list of environment variables for this process.
-	 * 
-	 * @return a amp containing the environment variables
-	 * @throws IOException
-	 *             the operation failed
-	 * @throws SecurityException
-	 *             if a security manager exists and its
-	 *             {@link SecurityManager#checkPermission checkPermission}
-	 *             method doesn't allow access to the process environment
-	 */
-	protected Map<String, String> createProcEnvironment() throws IOException {
-		if (procEnvironment == null) {
-			Map<String, String> env = System.getenv();
-			procEnvironment = createEnvironmentMap();
-			procEnvironment.putAll(env);
-		}
+   /**
+    * Find the list of environment variables for this process.
+    * 
+    * @return a amp containing the environment variables
+    * @throws IOException
+    *            the operation failed
+    * @throws SecurityException
+    *            if a security manager exists and its
+    *            {@link SecurityManager#checkPermission checkPermission} method
+    *            doesn't allow access to the process environment
+    */
+   protected Map<String, String> createProcEnvironment() throws IOException {
+      if (procEnvironment == null) {
+         Map<String, String> env = System.getenv();
+         procEnvironment = createEnvironmentMap();
+         procEnvironment.putAll(env);
+      }
 
-		return procEnvironment;
-	}
+      return procEnvironment;
+   }
 
-
-	/**
-	 * Creates a map that obeys the casing rules of the current platform for key
-	 * lookup. E.g. on a Windows platform, the map keys will be
-	 * case-insensitive.
-	 * 
-	 * @return The map for storage of environment variables, never
-	 *         <code>null</code>.
-	 */
-	private Map<String, String> createEnvironmentMap() {
-		if (OS.isFamilyWindows()) {
-			return new TreeMap<String, String>(new Comparator<String>() {
-				public int compare(String key0, String key1) {
-					return key0.compareToIgnoreCase(key1);
-				}
-			});
-		} else {
-			return new HashMap<String, String>();
-		}
-	}
+   /**
+    * Creates a map that obeys the casing rules of the current platform for key
+    * lookup. E.g. on a Windows platform, the map keys will be case-insensitive.
+    * 
+    * @return The map for storage of environment variables, never
+    *         <code>null</code>.
+    */
+   private Map<String, String> createEnvironmentMap() {
+      if (OS.isFamilyWindows()) {
+         return new TreeMap<String, String>(new Comparator<String>() {
+            public int compare(String key0, String key1) {
+               return key0.compareToIgnoreCase(key1);
+            }
+         });
+      } else {
+         return new HashMap<String, String>();
+      }
+   }
 
 }

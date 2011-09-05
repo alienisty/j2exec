@@ -26,59 +26,61 @@ import junit.framework.TestCase;
 
 public final class TestUtil {
 
-    private TestUtil() {
-    }
+   private TestUtil() {
+   }
 
-    public static File resolveScriptForOS(String script) {
-        if (OS.isFamilyWindows()) {
-            return new File(script + ".bat");
-        } else if (OS.isFamilyUnix()) {
-            return new File(script + ".sh");
-        } else if (OS.isFamilyOpenVms()) {
-            return new File(script + ".dcl");
-        } else {
-            throw new AssertionFailedError("Test not supported for this OS");
-        }
-    }
-    
-    /**
-     * Get success and fail return codes used by the test scripts
-     * @return int array[2] = {ok, success}
-     */
-    public static int[] getTestScriptCodesForOS() {
-        if (OS.isFamilyWindows()) {
-            return new int[]{0,1};
-        } else if (OS.isFamilyUnix()) {
-            return new int[]{0,1};
-        } else if (OS.isFamilyOpenVms()) {
-            return new int[]{1,2};
-        } else {
-            throw new AssertionFailedError("Test not supported for this OS");
-        }
-    }
-    
-    
-    public static void assertEquals(Object[] expected, Object[] actual, boolean orderSignificant) {
-    	
-    	if(expected == null && actual == null) {
-    		// all good
-    	} else if (actual == null) {
-    		throw new AssertionFailedError("Expected non null array");
-    	} else if (expected == null) {
-    		throw new AssertionFailedError("Expected null array");
-    	} else {
-    		if(expected.length != actual.length) {
-    			throw new AssertionFailedError("Arrays not of same length");
-    		}
-    		
-    		if(!orderSignificant) {
-    			Arrays.sort(expected);
-    			Arrays.sort(actual);
-    		}
-    		
-    		for (int i = 0; i < actual.length; i++) {
-				TestCase.assertEquals("Array element at " + i, expected[i], actual[i]);
-			}
-    	}
-    }
+   public static File resolveScriptForOS(String script) {
+      if (OS.isFamilyWindows()) {
+         return new File(script + ".bat");
+      } else if (OS.isFamilyUnix()) {
+         return new File(script + ".sh");
+      } else if (OS.isFamilyOpenVms()) {
+         return new File(script + ".dcl");
+      } else {
+         throw new AssertionFailedError("Test not supported for this OS");
+      }
+   }
+
+   /**
+    * Get success and fail return codes used by the test scripts
+    * 
+    * @return int array[2] = {ok, success}
+    */
+   public static int[] getTestScriptCodesForOS() {
+      if (OS.isFamilyWindows()) {
+         return new int[] { 0, 1 };
+      } else if (OS.isFamilyUnix()) {
+         return new int[] { 0, 1 };
+      } else if (OS.isFamilyOpenVms()) {
+         return new int[] { 1, 2 };
+      } else {
+         throw new AssertionFailedError("Test not supported for this OS");
+      }
+   }
+
+   public static void assertEquals(Object[] expected, Object[] actual,
+         boolean orderSignificant) {
+
+      if (expected == null && actual == null) {
+         // all good
+      } else if (actual == null) {
+         throw new AssertionFailedError("Expected non null array");
+      } else if (expected == null) {
+         throw new AssertionFailedError("Expected null array");
+      } else {
+         if (expected.length != actual.length) {
+            throw new AssertionFailedError("Arrays not of same length");
+         }
+
+         if (!orderSignificant) {
+            Arrays.sort(expected);
+            Arrays.sort(actual);
+         }
+
+         for (int i = 0; i < actual.length; i++) {
+            TestCase.assertEquals("Array element at " + i, expected[i],
+                  actual[i]);
+         }
+      }
+   }
 }

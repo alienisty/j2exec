@@ -31,16 +31,15 @@ import org.apache.commons.exec.environment.EnvironmentUtils;
  */
 public abstract class CommandLauncherImpl implements CommandLauncher {
 
-    public Process exec(final CommandLine cmd, final Map<String, String> env)
-            throws IOException {
-        String[] envVar = EnvironmentUtils.toStrings(env);
-        return Runtime.getRuntime().exec(cmd.toStrings(), envVar);
-    }
+   public Process exec(final CommandLine cmd, final Map<String, String> env)
+         throws IOException {
+      String[] envVar = EnvironmentUtils.toStrings(env);
+      return Runtime.getRuntime().exec(cmd.toStrings(), envVar);
+   }
 
-    /** @see org.apache.commons.exec.launcher.CommandLauncher#isFailure(int) */    
-    public boolean isFailure(final int exitValue)
-    {
-        // non zero exit value signals failure
-        return exitValue != 0;
-    }
+   /** @see org.apache.commons.exec.launcher.CommandLauncher#isFailure(int) */
+   public boolean isFailure(final int exitValue) {
+      // non zero exit value signals failure
+      return exitValue != 0;
+   }
 }

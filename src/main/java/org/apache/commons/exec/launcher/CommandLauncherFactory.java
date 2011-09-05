@@ -18,26 +18,25 @@
 
 package org.apache.commons.exec.launcher;
 
-
 /**
  * Builds a command launcher for the OS and JVM we are running under.
  */
 public abstract class CommandLauncherFactory {
 
-	private CommandLauncherFactory() {
-	}
+   private CommandLauncherFactory() {
+   }
 
-	/**
-	 * Factory method to create an appropriate launcher.
-	 * 
-	 * @return the command launcher
-	 */
-	public static CommandLauncher createVMLauncher() {
-		// Try using a JDK 1.3 launcher
-		CommandLauncher launcher;
+   /**
+    * Factory method to create an appropriate launcher.
+    * 
+    * @return the command launcher
+    */
+   public static CommandLauncher createVMLauncher() {
+      // Try using a JDK 1.3 launcher
+      CommandLauncher launcher;
 
-		launcher = new Java13CommandLauncher();
+      launcher = new Java13CommandLauncher();
 
-		return launcher;
-	}
+      return launcher;
+   }
 }

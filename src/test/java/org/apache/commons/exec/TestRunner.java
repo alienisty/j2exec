@@ -26,34 +26,35 @@ import org.apache.commons.exec.environment.EnvironmentUtilTest;
 import org.apache.commons.exec.util.MapUtilTest;
 
 /**
- * A stand-alone JUnit invocation to allow running JUnit tests without
- * having ANT or M2 installed.
+ * A stand-alone JUnit invocation to allow running JUnit tests without having
+ * ANT or M2 installed.
  */
 public class TestRunner extends TestCase {
 
-    public static Test suite() {
-        TestSuite suite = new TestSuite("TestRunner");
-        suite.addTestSuite(CommandLineTest.class);
-        suite.addTestSuite(DefaultExecutorTest.class);
-        suite.addTestSuite(EnvironmentUtilTest.class);
-        suite.addTestSuite(MapUtilTest.class);
-        suite.addTestSuite(TestUtilTest.class);
-        return suite;
-    }
+   public static Test suite() {
+      TestSuite suite = new TestSuite("TestRunner");
+      suite.addTestSuite(CommandLineTest.class);
+      suite.addTestSuite(DefaultExecutorTest.class);
+      suite.addTestSuite(EnvironmentUtilTest.class);
+      suite.addTestSuite(MapUtilTest.class);
+      suite.addTestSuite(TestUtilTest.class);
+      return suite;
+   }
 
-    public static void main(String[] args) {
+   public static void main(String[] args) {
 
-        Test test = TestRunner.suite();
-        junit.textui.TestRunner testRunner = new junit.textui.TestRunner(System.out);
-        TestResult testResult = testRunner.doRun(test);
+      Test test = TestRunner.suite();
+      junit.textui.TestRunner testRunner = new junit.textui.TestRunner(
+            System.out);
+      TestResult testResult = testRunner.doRun(test);
 
-        if(!testResult.wasSuccessful()) {
-            System.exit(1);
-        }
+      if (!testResult.wasSuccessful()) {
+         System.exit(1);
+      }
 
-        // not calling System.exit(0) here to ensure that the application
-        // properly terminates (e.g. not waiting for any background threads
-        // indicating serious problems
-        return;
-    }
+      // not calling System.exit(0) here to ensure that the application
+      // properly terminates (e.g. not waiting for any background threads
+      // indicating serious problems
+      return;
+   }
 }

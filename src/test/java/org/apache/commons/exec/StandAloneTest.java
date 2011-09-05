@@ -23,24 +23,25 @@ import java.io.File;
 import junit.framework.TestCase;
 
 /**
- * Placeholder for mailing list question - provided a minimal test case
- * to answer the question as sel-contained regression test.
+ * Placeholder for mailing list question - provided a minimal test case to
+ * answer the question as sel-contained regression test.
  */
 public class StandAloneTest extends TestCase {
 
-    static{
-        System.setProperty("org.apache.commons.exec.lenient", "false");
-        System.setProperty("org.apache.commons.exec.debug", "true");
-    }
+   static {
+      System.setProperty("org.apache.commons.exec.lenient", "false");
+      System.setProperty("org.apache.commons.exec.debug", "true");
+   }
 
-    public void testMe() throws Exception {
-        if(OS.isFamilyUnix()) {
-            File testScript = TestUtil.resolveScriptForOS("./src/test/scripts/standalone");
-            Executor exec = new DefaultExecutor();
-            exec.setStreamHandler(new PumpStreamHandler());
-            CommandLine cl = new CommandLine(testScript);
-            exec.execute(cl);
-            assertTrue(new File("./target/mybackup.gz").exists());
-        }        
-    }
+   public void testMe() throws Exception {
+      if (OS.isFamilyUnix()) {
+         File testScript = TestUtil
+               .resolveScriptForOS("./src/test/scripts/standalone");
+         Executor exec = new DefaultExecutor();
+         exec.setStreamHandler(new PumpStreamHandler());
+         CommandLine cl = new CommandLine(testScript);
+         exec.execute(cl);
+         assertTrue(new File("./target/mybackup.gz").exists());
+      }
+   }
 }

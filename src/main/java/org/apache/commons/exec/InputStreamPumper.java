@@ -31,52 +31,52 @@ import org.apache.commons.exec.util.DebugUtils;
  */
 public class InputStreamPumper implements Runnable {
 
-	/** the input stream to pump from */
-	private final InputStream is;
+   /** the input stream to pump from */
+   private final InputStream is;
 
-	/** the output stream to pmp into */
-	private final OutputStream os;
+   /** the output stream to pmp into */
+   private final OutputStream os;
 
-	/** flag to stop the stream pumping */
-	private volatile boolean stop;
+   /** flag to stop the stream pumping */
+   private volatile boolean stop;
 
-	/**
-	 * Create a new stream pumper.
-	 * 
-	 * @param is
-	 *            input stream to read data from
-	 * @param os
-	 *            output stream to write data to.
-	 */
-	public InputStreamPumper(final InputStream is, final OutputStream os) {
-		this.is = is;
-		this.os = os;
-		this.stop = false;
-	}
+   /**
+    * Create a new stream pumper.
+    * 
+    * @param is
+    *           input stream to read data from
+    * @param os
+    *           output stream to write data to.
+    */
+   public InputStreamPumper(final InputStream is, final OutputStream os) {
+      this.is = is;
+      this.os = os;
+      this.stop = false;
+   }
 
-	/**
-	 * Copies data from the input stream to the output stream. Terminates as
-	 * soon as the input stream is closed or an error occurs.
-	 */
-	public void run() {
-		try {
-			int read;
-			while (!stop) {
-				if ((read = is.read()) == -1) {
-					return;
-				}
-				os.write(read);
-				os.flush();
-			}
-		} catch (Exception e) {
-			String msg = "Got exception while reading/writing the stream";
-			DebugUtils.handleException(msg, e);
-		} finally {
-		}
-	}
+   /**
+    * Copies data from the input stream to the output stream. Terminates as soon
+    * as the input stream is closed or an error occurs.
+    */
+   public void run() {
+      try {
+         int read;
+         while (!stop) {
+            if ((read = is.read()) == -1) {
+               return;
+            }
+            os.write(read);
+            os.flush();
+         }
+      } catch (Exception e) {
+         String msg = "Got exception while reading/writing the stream";
+         DebugUtils.handleException(msg, e);
+      } finally {
+      }
+   }
 
-	public void stopProcessing() {
-		stop = true;
-	}
+   public void stopProcessing() {
+      stop = true;
+   }
 
 }

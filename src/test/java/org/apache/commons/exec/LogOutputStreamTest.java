@@ -28,53 +28,52 @@ import junit.framework.TestCase;
  * Test the LogOutputStream.
  */
 @SuppressWarnings
-public class LogOutputStreamTest extends TestCase
-{
+public class LogOutputStreamTest extends TestCase {
 
-    private Executor exec = new DefaultExecutor();
-    private File testDir = new File("src/test/scripts");
-    private OutputStream systemOut;
-    private File environmentScript = TestUtil.resolveScriptForOS(testDir + "/environment");
+   private Executor exec = new DefaultExecutor();
+   private File testDir = new File("src/test/scripts");
+   private OutputStream systemOut;
+   private File environmentScript = TestUtil.resolveScriptForOS(testDir
+         + "/environment");
 
-    static{
-        // turn on debug mode and throw an exception for each encountered problem
-        System.setProperty("org.apache.commons.exec.lenient", "false");
-        System.setProperty("org.apache.commons.exec.debug", "true");
-    }
+   static {
+      // turn on debug mode and throw an exception for each encountered problem
+      System.setProperty("org.apache.commons.exec.lenient", "false");
+      System.setProperty("org.apache.commons.exec.debug", "true");
+   }
 
+   protected void setUp() throws Exception {
+      this.systemOut = new SystemLogOutputStream(1);
+      this.exec.setStreamHandler(new PumpStreamHandler(systemOut, systemOut));
+   }
 
-    protected void setUp() throws Exception {
-        this.systemOut = new SystemLogOutputStream(1);
-        this.exec.setStreamHandler(new PumpStreamHandler(systemOut, systemOut));
-    }
+   protected void tearDown() throws Exception {
+      this.systemOut.close();
+   }
 
-    protected void tearDown() throws Exception {
-        this.systemOut.close();
-    }
+   // ======================================================================
+   // Start of regression tests
+   // ======================================================================
 
-    // ======================================================================
-    // Start of regression tests
-    // ======================================================================
+   public void testStdout() throws Exception {
+      CommandLine cl = new CommandLine(environmentScript);
+      int exitValue = exec.execute(cl);
+      assertFalse(exec.isFailure(exitValue));
+   }
 
-    public void testStdout() throws Exception {
-        CommandLine cl = new CommandLine(environmentScript);
-        int exitValue = exec.execute(cl);
-        assertFalse(exec.isFailure(exitValue));
-    }
+   // ======================================================================
+   // Helper classes
+   // ======================================================================
 
-    // ======================================================================
-    // Helper classes
-    // ======================================================================
+   private static class SystemLogOutputStream extends LogOutputStream {
 
-    private static class SystemLogOutputStream extends LogOutputStream {
+      private SystemLogOutputStream(int level) {
+         super(level);
+      }
 
-        private SystemLogOutputStream(int level) {
-            super(level);
-        }
-
-        protected void processLine(String line, int level) {
-            System.out.println(line);
-        }
-    }
+      protected void processLine(String line, int level) {
+         System.out.println(line);
+      }
+   }
 
 }

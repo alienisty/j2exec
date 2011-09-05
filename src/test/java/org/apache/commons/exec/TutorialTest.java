@@ -36,120 +36,119 @@ import junit.framework.TestCase;
 @SuppressWarnings
 public class TutorialTest extends TestCase {
 
-	/** the directory to pick up the test scripts */
-	private File testDir = new File("src/test/scripts");
+   /** the directory to pick up the test scripts */
+   private File testDir = new File("src/test/scripts");
 
-	/** simulates a PDF print job */
-	private File acroRd32Script = TestUtil.resolveScriptForOS(testDir
-			+ "/acrord32");
+   /** simulates a PDF print job */
+   private File acroRd32Script = TestUtil.resolveScriptForOS(testDir
+         + "/acrord32");
 
-	public void testTutorialExample() throws Exception {
+   public void testTutorialExample() throws Exception {
 
-		long printJobTimeout = 15000;
-		boolean printInBackground = false;
-		String pdfFile = "/Documents and Settings/foo.pdf";
+      long printJobTimeout = 15000;
+      boolean printInBackground = false;
+      String pdfFile = "/Documents and Settings/foo.pdf";
 
-		PrintResultHandler printResult;
+      PrintResultHandler printResult;
 
-		try {
-			// printing takes around 10 seconds
-			System.out.println("[main] Preparing print job ...");
-			printResult = print(pdfFile, printJobTimeout, printInBackground);
-			System.out.println("[main] Successfully sent the print job ...");
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail("[main] Printing of the following document failed : "
-					+ new File(pdfFile).getAbsolutePath());
-			throw e;
-		}
+      try {
+         // printing takes around 10 seconds
+         System.out.println("[main] Preparing print job ...");
+         printResult = print(pdfFile, printJobTimeout, printInBackground);
+         System.out.println("[main] Successfully sent the print job ...");
+      } catch (Exception e) {
+         e.printStackTrace();
+         fail("[main] Printing of the following document failed : "
+               + new File(pdfFile).getAbsolutePath());
+         throw e;
+      }
 
-		// come back to check the print result
-		System.out
-				.println("[main] Test is exiting but waiting for the print job to finish...");
-		printResult.waitFor();
-		System.out.println("[main] The print job has finished ...");
-	}
+      // come back to check the print result
+      System.out
+            .println("[main] Test is exiting but waiting for the print job to finish...");
+      printResult.waitFor();
+      System.out.println("[main] The print job has finished ...");
+   }
 
-	/**
-	 * Simulate printing a PDF document.
-	 * 
-	 * @param file
-	 *            the file to print
-	 * @param printJobTimeout
-	 *            the printJobTimeout (ms) before the watchdog terminates the
-	 *            print process
-	 * @param printInBackground
-	 *            printing done in the background or blocking
-	 * @return a print result handler (implementing a future)
-	 * @throws IOException
-	 *             the test failed
-	 */
-	public PrintResultHandler print(String file, long printJobTimeout,
-			boolean printInBackground) throws IOException {
+   /**
+    * Simulate printing a PDF document.
+    * 
+    * @param file
+    *           the file to print
+    * @param printJobTimeout
+    *           the printJobTimeout (ms) before the watchdog terminates the
+    *           print process
+    * @param printInBackground
+    *           printing done in the background or blocking
+    * @return a print result handler (implementing a future)
+    * @throws IOException
+    *            the test failed
+    */
+   public PrintResultHandler print(String file, long printJobTimeout,
+         boolean printInBackground) throws IOException {
 
-		int exitValue;
-		ExecuteWatchdog watchdog = null;
-		PrintResultHandler resultHandler;
+      int exitValue;
+      ExecuteWatchdog watchdog = null;
+      PrintResultHandler resultHandler;
 
-		// build up the command line to using a 'java.io.File'
-		CommandLine commandLine = new CommandLine(acroRd32Script);
-		commandLine.addArgument("/p");
-		commandLine.addArgument("/h");
-		commandLine.addArgument("${file}");
-		commandLine.setSubstitution("file", file);
+      // build up the command line to using a 'java.io.File'
+      CommandLine commandLine = new CommandLine(acroRd32Script);
+      commandLine.addArgument("/p");
+      commandLine.addArgument("/h");
+      commandLine.addArgument("${file}");
+      commandLine.setSubstitution("file", file);
 
-		// create the executor and consider the exitValue '1' as success
-		Executor executor = new DefaultExecutor();
-		executor.setExitValue(1);
+      // create the executor and consider the exitValue '1' as success
+      Executor executor = new DefaultExecutor();
+      executor.setExitValue(1);
 
-		// create a watchdog if requested
-		if (printJobTimeout > 0) {
-			watchdog = new ExecuteWatchdog(printJobTimeout);
-			executor.setWatchdog(watchdog);
-		}
+      // create a watchdog if requested
+      if (printJobTimeout > 0) {
+         watchdog = new ExecuteWatchdog(printJobTimeout);
+         executor.setWatchdog(watchdog);
+      }
 
-		// pass a "ExecuteResultHandler" when doing background printing
-		if (printInBackground) {
-			System.out.println("[print] Executing non-blocking print job  ...");
-			resultHandler = new PrintResultHandler(watchdog);
-			executor.execute(commandLine, resultHandler);
-		} else {
-			System.out.println("[print] Executing blocking print job  ...");
-			exitValue = executor.execute(commandLine);
-			resultHandler = new PrintResultHandler(exitValue);
-		}
+      // pass a "ExecuteResultHandler" when doing background printing
+      if (printInBackground) {
+         System.out.println("[print] Executing non-blocking print job  ...");
+         resultHandler = new PrintResultHandler(watchdog);
+         executor.execute(commandLine, resultHandler);
+      } else {
+         System.out.println("[print] Executing blocking print job  ...");
+         exitValue = executor.execute(commandLine);
+         resultHandler = new PrintResultHandler(exitValue);
+      }
 
-		return resultHandler;
-	}
+      return resultHandler;
+   }
 
-	private class PrintResultHandler extends DefaultExecuteResultHandler {
+   private class PrintResultHandler extends DefaultExecuteResultHandler {
 
-		private ExecuteWatchdog watchdog;
+      private ExecuteWatchdog watchdog;
 
-		public PrintResultHandler(ExecuteWatchdog watchdog) {
-			this.watchdog = watchdog;
-		}
+      public PrintResultHandler(ExecuteWatchdog watchdog) {
+         this.watchdog = watchdog;
+      }
 
-		public PrintResultHandler(int exitValue) {
-			super.onProcessComplete(exitValue);
-		}
+      public PrintResultHandler(int exitValue) {
+         super.onProcessComplete(exitValue);
+      }
 
-		public void onProcessComplete(int exitValue) {
-			super.onProcessComplete(exitValue);
-			System.out
-					.println("[resultHandler] The document was successfully printed ...");
-		}
+      public void onProcessComplete(int exitValue) {
+         super.onProcessComplete(exitValue);
+         System.out
+               .println("[resultHandler] The document was successfully printed ...");
+      }
 
-		public void onProcessFailed(ExecuteException e) {
-			super.onProcessFailed(e);
-			if (watchdog != null && watchdog.killedProcess()) {
-				System.err
-						.println("[resultHandler] The print process timed out");
-			} else {
-				System.err
-						.println("[resultHandler] The print process failed to do : "
-								+ e.getMessage());
-			}
-		}
-	}
+      public void onProcessFailed(ExecuteException e) {
+         super.onProcessFailed(e);
+         if (watchdog != null && watchdog.killedProcess()) {
+            System.err.println("[resultHandler] The print process timed out");
+         } else {
+            System.err
+                  .println("[resultHandler] The print process failed to do : "
+                        + e.getMessage());
+         }
+      }
+   }
 }
