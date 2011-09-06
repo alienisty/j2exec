@@ -23,10 +23,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * Base class to connect a logging system to the output and/or error stream of
- * then external process. The implementation parses the incoming data to
- * construct a line and passes the complete line to an user-defined
- * implementation.
+ * Base class to connect a logging system to the output and/or error stream of then external
+ * process. The implementation parses the incoming data to construct a line and passes the complete
+ * line to an user-defined implementation.
  */
 public abstract class LogOutputStream extends OutputStream {
 
@@ -40,8 +39,7 @@ public abstract class LogOutputStream extends OutputStream {
    private static final int LF = 0x0a;
 
    /** the internal buffer */
-   private final ByteArrayOutputStream buffer = new ByteArrayOutputStream(
-         INTIAL_SIZE);
+   private final ByteArrayOutputStream buffer = new ByteArrayOutputStream(INTIAL_SIZE);
 
    private boolean skip = false;
 
@@ -65,8 +63,7 @@ public abstract class LogOutputStream extends OutputStream {
    }
 
    /**
-    * Write the data to the buffer and flush the buffer, if a line separator is
-    * detected.
+    * Write the data to the buffer and flush the buffer, if a line separator is detected.
     * 
     * @param cc
     *           data to log (byte).
@@ -127,8 +124,7 @@ public abstract class LogOutputStream extends OutputStream {
     *            if the data cannot be written into the stream.
     * @see java.io.OutputStream#write(byte[], int, int)
     */
-   public void write(final byte[] b, final int off, final int len)
-         throws IOException {
+   public void write(final byte[] b, final int off, final int len) throws IOException {
       // find the line breaks and pass other chars through in blocks
       int offset = off;
       int blockStartOffset = offset;

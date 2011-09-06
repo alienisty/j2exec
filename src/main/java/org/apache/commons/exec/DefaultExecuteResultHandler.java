@@ -19,8 +19,7 @@
 package org.apache.commons.exec;
 
 /**
- * A default implementation of 'ExecuteResultHandler' used for asynchronous
- * process handling.
+ * A default implementation of 'ExecuteResultHandler' used for asynchronous process handling.
  */
 public class DefaultExecuteResultHandler implements ExecuteResultHandler {
 
@@ -73,7 +72,7 @@ public class DefaultExecuteResultHandler implements ExecuteResultHandler {
 
       if (!hasResult) {
          throw new IllegalStateException(
-               "The process has not exited yet therefore no result is available ...");
+                  "The process has not exited yet therefore no result is available ...");
       }
 
       return exception;
@@ -90,15 +89,14 @@ public class DefaultExecuteResultHandler implements ExecuteResultHandler {
 
       if (!hasResult) {
          throw new IllegalStateException(
-               "The process has not exited yet therefore no result is available ...");
+                  "The process has not exited yet therefore no result is available ...");
       }
 
       return exitValue;
    }
 
    /**
-    * Has the process exited and a result is available, i.e. exitCode or
-    * exception?
+    * Has the process exited and a result is available, i.e. exitCode or exception?
     * 
     * @return true if a result of the execution is available
     */
@@ -107,15 +105,14 @@ public class DefaultExecuteResultHandler implements ExecuteResultHandler {
    }
 
    /**
-    * Causes the current thread to wait, if necessary, until the process has
-    * terminated. This method returns immediately if the process has already
-    * terminated. If the process has not yet terminated, the calling thread will
-    * be blocked until the process exits.
+    * Causes the current thread to wait, if necessary, until the process has terminated. This method
+    * returns immediately if the process has already terminated. If the process has not yet
+    * terminated, the calling thread will be blocked until the process exits.
     * 
     * @exception InterruptedException
-    *               if the current thread is {@linkplain Thread#interrupt()
-    *               interrupted} by another thread while it is waiting, then the
-    *               wait is ended and an {@link InterruptedException} is thrown.
+    *               if the current thread is {@linkplain Thread#interrupt() interrupted} by another
+    *               thread while it is waiting, then the wait is ended and an
+    *               {@link InterruptedException} is thrown.
     */
    public void waitFor() throws InterruptedException {
 
@@ -125,17 +122,16 @@ public class DefaultExecuteResultHandler implements ExecuteResultHandler {
    }
 
    /**
-    * Causes the current thread to wait, if necessary, until the process has
-    * terminated. This method returns immediately if the process has already
-    * terminated. If the process has not yet terminated, the calling thread will
-    * be blocked until the process exits.
+    * Causes the current thread to wait, if necessary, until the process has terminated. This method
+    * returns immediately if the process has already terminated. If the process has not yet
+    * terminated, the calling thread will be blocked until the process exits.
     * 
     * @param timeout
     *           the maximum time to wait in milliseconds
     * @exception InterruptedException
-    *               if the current thread is {@linkplain Thread#interrupt()
-    *               interrupted} by another thread while it is waiting, then the
-    *               wait is ended and an {@link InterruptedException} is thrown.
+    *               if the current thread is {@linkplain Thread#interrupt() interrupted} by another
+    *               thread while it is waiting, then the wait is ended and an
+    *               {@link InterruptedException} is thrown.
     */
    public void waitFor(long timeout) throws InterruptedException {
 

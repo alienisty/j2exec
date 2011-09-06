@@ -27,15 +27,14 @@ import edu.umd.cs.findbugs.annotations.SuppressWarnings;
  */
 public class DebugUtils {
    /**
-    * System property to determine how to handle exceptions. When set to "false"
-    * we rethrow the otherwise silently catched exceptions found in the original
-    * code. The default value is "true"
+    * System property to determine how to handle exceptions. When set to "false" we rethrow the
+    * otherwise silently catched exceptions found in the original code. The default value is "true"
     */
    public static final String COMMONS_EXEC_LENIENT = "org.apache.commons.exec.lenient";
 
    /**
-    * System property to determine how to dump an exception. When set to "true"
-    * we print any exception to stderr. The default value is "false"
+    * System property to determine how to dump an exception. When set to "true" we print any
+    * exception to stderr. The default value is "false"
     */
    public static final String COMMONS_EXEC_DEBUG = "org.apache.commons.exec.debug";
 
@@ -67,14 +66,12 @@ public class DebugUtils {
    }
 
    /**
-    * Determine if debugging is enabled based on the system property
-    * "COMMONS_EXEC_DEBUG".
+    * Determine if debugging is enabled based on the system property "COMMONS_EXEC_DEBUG".
     * 
     * @return true if debug mode is enabled
     */
    public static boolean isDebugEnabled() {
-      return "true".equalsIgnoreCase(System.getProperty(COMMONS_EXEC_DEBUG,
-            "false"));
+      return "true".equalsIgnoreCase(System.getProperty(COMMONS_EXEC_DEBUG, "false"));
    }
 
    /**
@@ -83,8 +80,7 @@ public class DebugUtils {
     * @return true if lenient mode is enabled
     */
    public static boolean isLenientEnabled() {
-      return "true".equalsIgnoreCase(System.getProperty(COMMONS_EXEC_LENIENT,
-            "true"));
+      return "true".equalsIgnoreCase(System.getProperty(COMMONS_EXEC_LENIENT, "true"));
    }
 
 }

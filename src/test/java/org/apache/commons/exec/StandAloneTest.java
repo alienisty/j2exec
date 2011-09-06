@@ -23,8 +23,8 @@ import java.io.File;
 import junit.framework.TestCase;
 
 /**
- * Placeholder for mailing list question - provided a minimal test case to
- * answer the question as sel-contained regression test.
+ * Placeholder for mailing list question - provided a minimal test case to answer the question as
+ * sel-contained regression test.
  */
 public class StandAloneTest extends TestCase {
 
@@ -35,8 +35,7 @@ public class StandAloneTest extends TestCase {
 
    public void testMe() throws Exception {
       if (OS.isFamilyUnix()) {
-         File testScript = TestUtil
-               .resolveScriptForOS("./src/test/scripts/standalone");
+         File testScript = TestUtil.resolveScriptForOS("./src/test/scripts/standalone");
          Executor exec = new DefaultExecutor();
          exec.setStreamHandler(new PumpStreamHandler());
          CommandLine cl = new CommandLine(testScript);

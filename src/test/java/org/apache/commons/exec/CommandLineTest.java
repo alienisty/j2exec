@@ -112,8 +112,7 @@ public class CommandLineTest extends TestCase {
       cmdl.addArgument("\"bar\"");
       cmdl.addArgument("\"fe z\"");
       assertEquals("test foo bar \"fe z\"", cmdl.toString());
-      assertEquals(new String[] { "test", "foo", "bar", "\"fe z\"" },
-            cmdl.toStrings());
+      assertEquals(new String[] { "test", "foo", "bar", "\"fe z\"" }, cmdl.toStrings());
    }
 
    public void testAddArgumentWithSingleQuote() {
@@ -122,8 +121,7 @@ public class CommandLineTest extends TestCase {
       cmdl.addArgument("foo");
       cmdl.addArgument("ba'r");
       assertEquals("test foo \"ba'r\"", cmdl.toString());
-      assertEquals(new String[] { "test", "foo", "\"ba\'r\"" },
-            cmdl.toStrings());
+      assertEquals(new String[] { "test", "foo", "\"ba\'r\"" }, cmdl.toStrings());
    }
 
    public void testAddArgumentWithBothQuotes() {
@@ -155,8 +153,7 @@ public class CommandLineTest extends TestCase {
       CommandLine cmdl = new CommandLine("test");
       cmdl.addArguments("'fo o' \"ba r\"");
       assertEquals("test \"fo o\" \"ba r\"", cmdl.toString());
-      assertEquals(new String[] { "test", "\"fo o\"", "\"ba r\"" },
-            cmdl.toStrings());
+      assertEquals(new String[] { "test", "\"fo o\"", "\"ba r\"" }, cmdl.toStrings());
    }
 
    public void testAddArgumentsArray() {
@@ -174,8 +171,8 @@ public class CommandLineTest extends TestCase {
    }
 
    /**
-    * A little example how to add two command line arguments in one line, e.g.
-    * to make commenting out some options less error prone.
+    * A little example how to add two command line arguments in one line, e.g. to make commenting
+    * out some options less error prone.
     */
    public void testAddTwoArguments() {
 
@@ -231,32 +228,29 @@ public class CommandLineTest extends TestCase {
    }
 
    /**
-    * A command line parsing puzzle from Tino Schoellhorn - ImageMagix expects a
-    * "500x>" parameter (including quotes) and it is simply not possible to do
-    * that without adding a space, e.g. "500x> ".
+    * A command line parsing puzzle from Tino Schoellhorn - ImageMagix expects a "500x>" parameter
+    * (including quotes) and it is simply not possible to do that without adding a space, e.g.
+    * "500x> ".
     */
    public void testParseComplexCommandLine1() {
       HashMap<String, String> substitutionMap = new HashMap<String, String>();
       substitutionMap.put("in", "source.jpg");
       substitutionMap.put("out", "target.jpg");
-      CommandLine cmdl = CommandLine.parse(
-            "cmd /C convert ${in} -resize \"\'500x> \'\" ${out}",
-            substitutionMap);
-      assertEquals("cmd /C convert source.jpg -resize \"500x> \" target.jpg",
-            cmdl.toString());
+      CommandLine cmdl = CommandLine.parse("cmd /C convert ${in} -resize \"\'500x> \'\" ${out}",
+               substitutionMap);
+      assertEquals("cmd /C convert source.jpg -resize \"500x> \" target.jpg", cmdl.toString());
    }
 
    /**
-    * Another command line parsing puzzle from Kai Hu - as far as I understand
-    * it there is no way to express that in a one-line command string.
+    * Another command line parsing puzzle from Kai Hu - as far as I understand it there is no way to
+    * express that in a one-line command string.
     */
    public void testParseComplexCommandLine2() {
 
       String commandline = "./script/jrake cruise:publish_installers "
-            + "INSTALLER_VERSION=unstable_2_1 "
-            + "INSTALLER_PATH=\"/var/lib/ cruise-agent/installers\" "
-            + "INSTALLER_DOWNLOAD_SERVER=\'something\' "
-            + "WITHOUT_HELP_DOC=true";
+               + "INSTALLER_VERSION=unstable_2_1 "
+               + "INSTALLER_PATH=\"/var/lib/ cruise-agent/installers\" "
+               + "INSTALLER_DOWNLOAD_SERVER=\'something\' " + "WITHOUT_HELP_DOC=true";
 
       CommandLine cmdl = CommandLine.parse(commandline);
       String[] args = cmdl.getArguments();
@@ -280,15 +274,12 @@ public class CommandLineTest extends TestCase {
       CommandLine cmdl = CommandLine.parse(commandline);
       String[] args = cmdl.getArguments();
       assertEquals("/C", args[0]);
-      assertEquals(
-            "\"c:\\was51\\Web Sphere\\AppServer\\bin\\versionInfo.bat\"",
-            args[1]);
+      assertEquals("\"c:\\was51\\Web Sphere\\AppServer\\bin\\versionInfo.bat\"", args[1]);
    }
 
    /**
-    * Create a command line with pre-quoted strings to test SANDBOX-192, e.g.
-    * "runMemorySud.cmd", "10", "30", "-XX:+UseParallelGC",
-    * "\"-XX:ParallelGCThreads=2\""
+    * Create a command line with pre-quoted strings to test SANDBOX-192, e.g. "runMemorySud.cmd",
+    * "10", "30", "-XX:+UseParallelGC", "\"-XX:ParallelGCThreads=2\""
     */
    public void testComplexAddArgument() {
       CommandLine cmdl = new CommandLine("runMemorySud.cmd");
@@ -296,39 +287,33 @@ public class CommandLineTest extends TestCase {
       cmdl.addArgument("30", false);
       cmdl.addArgument("-XX:+UseParallelGC", false);
       cmdl.addArgument("\"-XX:ParallelGCThreads=2\"", false);
-      assertEquals(new String[] { "runMemorySud.cmd", "10", "30",
-            "-XX:+UseParallelGC", "\"-XX:ParallelGCThreads=2\"" },
-            cmdl.toStrings());
+      assertEquals(new String[] { "runMemorySud.cmd", "10", "30", "-XX:+UseParallelGC",
+               "\"-XX:ParallelGCThreads=2\"" }, cmdl.toStrings());
    }
 
    /**
-    * Create a command line with pre-quoted strings to test SANDBOX-192, e.g.
-    * "runMemorySud.cmd", "10", "30", "-XX:+UseParallelGC",
-    * "\"-XX:ParallelGCThreads=2\""
+    * Create a command line with pre-quoted strings to test SANDBOX-192, e.g. "runMemorySud.cmd",
+    * "10", "30", "-XX:+UseParallelGC", "\"-XX:ParallelGCThreads=2\""
     */
    public void testComplexAddArguments1() {
       CommandLine cmdl = new CommandLine("runMemorySud.cmd");
       cmdl.addArguments(new String[] { "10", "30", "-XX:+UseParallelGC",
-            "\"-XX:ParallelGCThreads=2\"" }, false);
-      assertEquals(new String[] { "runMemorySud.cmd", "10", "30",
-            "-XX:+UseParallelGC", "\"-XX:ParallelGCThreads=2\"" },
-            cmdl.toStrings());
+               "\"-XX:ParallelGCThreads=2\"" }, false);
+      assertEquals(new String[] { "runMemorySud.cmd", "10", "30", "-XX:+UseParallelGC",
+               "\"-XX:ParallelGCThreads=2\"" }, cmdl.toStrings());
    }
 
    /**
-    * Create a command line with pre-quoted strings to test SANDBOX-192, e.g.
-    * "runMemorySud.cmd", "10", "30", "-XX:+UseParallelGC",
-    * "\"-XX:ParallelGCThreads=2\"" Please not that we re forced to add
-    * additional single quotes to get the test working - don't know if this is a
-    * bug or a feature.
+    * Create a command line with pre-quoted strings to test SANDBOX-192, e.g. "runMemorySud.cmd",
+    * "10", "30", "-XX:+UseParallelGC", "\"-XX:ParallelGCThreads=2\"" Please not that we re forced
+    * to add additional single quotes to get the test working - don't know if this is a bug or a
+    * feature.
     */
    public void testComplexAddArguments2() {
       CommandLine cmdl = new CommandLine("runMemorySud.cmd");
-      cmdl.addArguments(
-            "10 30 -XX:+UseParallelGC '\"-XX:ParallelGCThreads=2\"'", false);
-      assertEquals(new String[] { "runMemorySud.cmd", "10", "30",
-            "-XX:+UseParallelGC", "\"-XX:ParallelGCThreads=2\"" },
-            cmdl.toStrings());
+      cmdl.addArguments("10 30 -XX:+UseParallelGC '\"-XX:ParallelGCThreads=2\"'", false);
+      assertEquals(new String[] { "runMemorySud.cmd", "10", "30", "-XX:+UseParallelGC",
+               "\"-XX:ParallelGCThreads=2\"" }, cmdl.toStrings());
    }
 
    /**
@@ -344,8 +329,7 @@ public class CommandLineTest extends TestCase {
       substitutionMap.put("file1", "./pom.xml");
       substitutionMap.put("file2", ".\\temp\\READ ME.txt");
 
-      Map<String, String> incompleteMap = singletonMap("JAVA_HOME",
-            "/usr/local/java");
+      Map<String, String> incompleteMap = singletonMap("JAVA_HOME", "/usr/local/java");
 
       // do not pass substitution map
       cmdl = CommandLine.parse("${JAVA_HOME}/bin/java ${appMainClass}");
@@ -354,35 +338,31 @@ public class CommandLineTest extends TestCase {
 
       // pass arguments with an empty map
       cmdl = CommandLine.parse("${JAVA_HOME}/bin/java ${appMainClass}",
-            Collections.<String, String> emptyMap());
+               Collections.<String, String> emptyMap());
       assertTrue(cmdl.getExecutable().indexOf("${JAVA_HOME}") == 0);
       assertEquals(new String[] { "${appMainClass}" }, cmdl.getArguments());
 
       // pass an complete substitution map
-      cmdl = CommandLine.parse("${JAVA_HOME}/bin/java ${appMainClass}",
-            substitutionMap);
+      cmdl = CommandLine.parse("${JAVA_HOME}/bin/java ${appMainClass}", substitutionMap);
       assertTrue(cmdl.getExecutable().indexOf("${JAVA_HOME}") < 0);
       assertTrue(cmdl.getExecutable().indexOf("local") > 0);
       assertEquals(new String[] { "foo.bar.Main" }, cmdl.getArguments());
 
       // pass an incomplete substitution map resulting in unresolved variables
-      cmdl = CommandLine.parse("${JAVA_HOME}/bin/java ${appMainClass}",
-            incompleteMap);
+      cmdl = CommandLine.parse("${JAVA_HOME}/bin/java ${appMainClass}", incompleteMap);
       assertTrue(cmdl.getExecutable().indexOf("${JAVA_HOME}") < 0);
       assertTrue(cmdl.getExecutable().indexOf("local") > 0);
       assertEquals(new String[] { "${appMainClass}" }, cmdl.getArguments());
 
       // pass a file
-      cmdl = CommandLine.parse(
-            "${JAVA_HOME}/bin/java ${appMainClass} ${file1} ${file2}",
-            substitutionMap);
+      cmdl = CommandLine.parse("${JAVA_HOME}/bin/java ${appMainClass} ${file1} ${file2}",
+               substitutionMap);
       assertTrue(cmdl.getExecutable().indexOf("${file}") < 0);
    }
 
    /**
-    * Test expanding the command line based on a user-supplied map. The main
-    * goal of the test is to setup a command line using macros and reuse it
-    * multiple times.
+    * Test expanding the command line based on a user-supplied map. The main goal of the test is to
+    * setup a command line using macros and reuse it multiple times.
     */
    public void testCommandLineParsingWithExpansion2() {
 
@@ -401,8 +381,7 @@ public class CommandLineTest extends TestCase {
       cmdl.addArgument("${file}");
 
       // build the first command line
-      substitutionMap.put("file",
-            "C:\\Document And Settings\\documents\\432431.pdf");
+      substitutionMap.put("file", "C:\\Document And Settings\\documents\\432431.pdf");
       cmdl.setSubstitutions(substitutionMap);
       result = cmdl.toStrings();
 
@@ -410,41 +389,31 @@ public class CommandLineTest extends TestCase {
       // please note - the executable argument is changed to using platform
       // specific file separator char
       // whereas all other variable substitution are not touched
-      assertEquals(
-            StringUtils
-                  .fixFileSeparatorChar("C:\\Programme\\jdk1.5.0_12\\bin\\java"),
-            result[0]);
+      assertEquals(StringUtils.fixFileSeparatorChar("C:\\Programme\\jdk1.5.0_12\\bin\\java"),
+               result[0]);
       assertEquals("-class", result[1]);
       assertEquals("foo.bar.Main", result[2]);
-      assertEquals("\"C:\\Document And Settings\\documents\\432431.pdf\"",
-            result[3]);
+      assertEquals("\"C:\\Document And Settings\\documents\\432431.pdf\"", result[3]);
 
       // verify the first command line again but by
       // accessing the executable and arguments directly
       String executable = cmdl.getExecutable();
       String[] arguments = cmdl.getArguments();
-      assertEquals(
-            StringUtils
-                  .fixFileSeparatorChar("C:\\Programme\\jdk1.5.0_12\\bin\\java"),
-            executable);
+      assertEquals(StringUtils.fixFileSeparatorChar("C:\\Programme\\jdk1.5.0_12\\bin\\java"),
+               executable);
       assertEquals("-class", arguments[0]);
       assertEquals("foo.bar.Main", arguments[1]);
-      assertEquals("\"C:\\Document And Settings\\documents\\432431.pdf\"",
-            arguments[2]);
+      assertEquals("\"C:\\Document And Settings\\documents\\432431.pdf\"", arguments[2]);
 
       // build the second command line with updated parameters resulting in a
       // different command line
-      cmdl.setSubstitution("file",
-            "C:\\Document And Settings\\documents\\432432.pdf");
+      cmdl.setSubstitution("file", "C:\\Document And Settings\\documents\\432432.pdf");
       result = cmdl.toStrings();
-      assertEquals(
-            StringUtils
-                  .fixFileSeparatorChar("C:\\Programme\\jdk1.5.0_12\\bin\\java"),
-            result[0]);
+      assertEquals(StringUtils.fixFileSeparatorChar("C:\\Programme\\jdk1.5.0_12\\bin\\java"),
+               result[0]);
       assertEquals("-class", result[1]);
       assertEquals("foo.bar.Main", result[2]);
-      assertEquals("\"C:\\Document And Settings\\documents\\432432.pdf\"",
-            result[3]);
+      assertEquals("\"C:\\Document And Settings\\documents\\432432.pdf\"", result[3]);
    }
 
    public void testCommandLineParsingWithExpansion3() {
@@ -452,14 +421,12 @@ public class CommandLineTest extends TestCase {
       cmdl.addArgument("/p");
       cmdl.addArgument("/h");
       cmdl.addArgument("${file}", false);
-      cmdl.setSubstitution("file",
-            "C:\\Document And Settings\\documents\\432432.pdf");
+      cmdl.setSubstitution("file", "C:\\Document And Settings\\documents\\432432.pdf");
       String[] result = cmdl.toStrings();
       assertEquals("AcroRd32.exe", result[0]);
       assertEquals("/p", result[1]);
       assertEquals("/h", result[2]);
-      assertEquals("C:\\Document And Settings\\documents\\432432.pdf",
-            result[3]);
+      assertEquals("C:\\Document And Settings\\documents\\432432.pdf", result[3]);
 
    }
 
@@ -481,13 +448,12 @@ public class CommandLineTest extends TestCase {
       params.put("file", "C:\\Document And Settings\\documents\\432432.pdf");
       cmdl = CommandLine.parse("AcroRd32.exe /p /h '${file}'", params);
       assertEquals(cmdl.toString(),
-            "AcroRd32.exe /p /h \"C:\\Document And Settings\\documents\\432432.pdf\"");
+               "AcroRd32.exe /p /h \"C:\\Document And Settings\\documents\\432432.pdf\"");
 
       // use an argument without spaces
       params.put("file", "C:\\documents\\432432.pdf");
       cmdl = CommandLine.parse("AcroRd32.exe /p /h '${file}'", params);
-      assertEquals(cmdl.toString(),
-            "AcroRd32.exe /p /h C:\\documents\\432432.pdf");
+      assertEquals(cmdl.toString(), "AcroRd32.exe /p /h C:\\documents\\432432.pdf");
    }
 
    /**
@@ -499,17 +465,16 @@ public class CommandLineTest extends TestCase {
       CommandLine cmdl;
 
       String line = "./script/jrake " + "cruise:publish_installers "
-            + "INSTALLER_VERSION=unstable_2_1 "
-            + "INSTALLER_PATH=\"/var/lib/cruise-agent/installers\" "
-            + "INSTALLER_DOWNLOAD_SERVER='something'" + "WITHOUT_HELP_DOC=true";
+               + "INSTALLER_VERSION=unstable_2_1 "
+               + "INSTALLER_PATH=\"/var/lib/cruise-agent/installers\" "
+               + "INSTALLER_DOWNLOAD_SERVER='something'" + "WITHOUT_HELP_DOC=true";
 
       cmdl = CommandLine.parse(line);
       String[] args = cmdl.toStrings();
       assertEquals("./script/jrake", args[0]);
       assertEquals("cruise:publish_installers", args[1]);
       assertEquals("INSTALLER_VERSION=unstable_2_1", args[2]);
-      assertEquals("INSTALLER_PATH=\"/var/lib/cruise-agent/installers\"",
-            args[3]);
+      assertEquals("INSTALLER_PATH=\"/var/lib/cruise-agent/installers\"", args[3]);
       assertEquals("INSTALLER_DOWNLOAD_SERVER='something'", args[4]);
       assertEquals("WITHOUT_HELP_DOC=true", args[5]);
    }
@@ -523,23 +488,22 @@ public class CommandLineTest extends TestCase {
       CommandLine cmdl;
 
       String line = "dotnetfx.exe"
-            + " /q:a "
-            + "/c:\"install.exe /l \"\"c:\\Documents and Settings\\myusername\\Local Settings\\Temp\\netfx.log\"\" /q\"";
+               + " /q:a "
+               + "/c:\"install.exe /l \"\"c:\\Documents and Settings\\myusername\\Local Settings\\Temp\\netfx.log\"\" /q\"";
 
       cmdl = CommandLine.parse(line);
       String[] args = cmdl.toStrings();
       assertEquals("dotnetfx.exe", args[0]);
       assertEquals("/q:a", args[1]);
       assertEquals(
-            "/c:\"install.exe /l \"\"c:\\Documents and Settings\\myusername\\Local Settings\\Temp\\netfx.log\"\" /q\"",
-            args[2]);
+               "/c:\"install.exe /l \"\"c:\\Documents and Settings\\myusername\\Local Settings\\Temp\\netfx.log\"\" /q\"",
+               args[2]);
    }
 
    /**
     * Test the following command line
     * 
-    * C:\CVS_DB\WeightsEngine /f WeightsEngine.mak
-    * CFG="WeightsEngine - Win32Release"
+    * C:\CVS_DB\WeightsEngine /f WeightsEngine.mak CFG="WeightsEngine - Win32Release"
     */
    public void _testExec36_3() {
 

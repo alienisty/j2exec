@@ -44,8 +44,8 @@ public class EnvironmentUtils {
     * 
     * @param environment
     *           the environment to use, may be <code>null</code>
-    * @return array of key=value assignment strings or <code>null</code> if and
-    *         only if the input map was <code>null</code>
+    * @return array of key=value assignment strings or <code>null</code> if and only if the input
+    *         map was <code>null</code>
     */
    public static String[] toStrings(Map<String, ?> environment) {
       if (environment == null) {
@@ -61,13 +61,11 @@ public class EnvironmentUtils {
    }
 
    /**
-    * Find the list of environment variables for this process. The returned map
-    * preserves the casing of a variable's name on all platforms but obeys the
-    * casing rules of the current platform during lookup, e.g. key names will be
-    * case-insensitive on Windows platforms.
+    * Find the list of environment variables for this process. The returned map preserves the casing
+    * of a variable's name on all platforms but obeys the casing rules of the current platform
+    * during lookup, e.g. key names will be case-insensitive on Windows platforms.
     * 
-    * @return a map containing the environment variables, may be empty but never
-    *         <code>null</code>
+    * @return a map containing the environment variables, may be empty but never <code>null</code>
     * @throws IOException
     *            the operation failed
     */
@@ -76,23 +74,22 @@ public class EnvironmentUtils {
    }
 
    /**
-    * Add a key/value pair to the given environment. If the key matches an
-    * existing key, the previous setting is replaced.
+    * Add a key/value pair to the given environment. If the key matches an existing key, the
+    * previous setting is replaced.
     * 
     * @param environment
     *           the current environment
     * @param keyAndValue
     *           the key/value pair
     */
-   public static void addVariableToEnvironment(Map<String, String> environment,
-         String keyAndValue) {
+   public static void addVariableToEnvironment(Map<String, String> environment, String keyAndValue) {
       String[] parsedVariable = parseEnvironmentVariable(keyAndValue);
       environment.put(parsedVariable[0], parsedVariable[1]);
    }
 
    /**
-    * Split a key/value pair into a String[]. It is assumed that the ky/value
-    * pair contains a '=' character.
+    * Split a key/value pair into a String[]. It is assumed that the ky/value pair contains a '='
+    * character.
     * 
     * @param keyAndValue
     *           the key/value pair
@@ -101,9 +98,8 @@ public class EnvironmentUtils {
    private static String[] parseEnvironmentVariable(final String keyAndValue) {
       int index = keyAndValue.indexOf('=');
       if (index == -1) {
-         throw new IllegalArgumentException(
-               "Environment variable for this platform "
-                     + "must contain an equals sign ('=')");
+         throw new IllegalArgumentException("Environment variable for this platform "
+                  + "must contain an equals sign ('=')");
       }
 
       String[] result = new String[2];

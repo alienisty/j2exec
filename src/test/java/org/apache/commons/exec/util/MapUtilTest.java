@@ -49,15 +49,12 @@ public class MapUtilTest extends TestCase {
     */
    public void testMergeMap() throws Exception {
 
-      Map<String, String> procEnvironment = EnvironmentUtils
-            .getProcEnvironment();
+      Map<String, String> procEnvironment = EnvironmentUtils.getProcEnvironment();
       HashMap<String, String> applicationEnvironment = new HashMap<String, String>();
 
       applicationEnvironment.put("appMainClass", "foo.bar.Main");
-      Map<String, String> result = MapUtils.merge(procEnvironment,
-            applicationEnvironment);
-      assertTrue((procEnvironment.size() + applicationEnvironment.size()) == result
-            .size());
+      Map<String, String> result = MapUtils.merge(procEnvironment, applicationEnvironment);
+      assertTrue((procEnvironment.size() + applicationEnvironment.size()) == result.size());
       assertEquals("foo.bar.Main", result.get("appMainClass"));
    }
 

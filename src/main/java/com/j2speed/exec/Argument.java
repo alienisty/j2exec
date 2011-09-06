@@ -15,8 +15,7 @@ public final class Argument {
 
    public Argument(String prefix, String postfix, int index) {
       this.prefixLength = prefix.length();
-      this.buffer = new StringBuilder(prefix.length() + postfix.length() + 16)
-            .append(prefix);
+      this.buffer = new StringBuilder(prefix.length() + postfix.length() + 16).append(prefix);
       this.postfix = postfix;
       this.index = index;
    }

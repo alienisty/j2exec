@@ -58,8 +58,7 @@ public final class TestUtil {
       }
    }
 
-   public static void assertEquals(Object[] expected, Object[] actual,
-         boolean orderSignificant) {
+   public static void assertEquals(Object[] expected, Object[] actual, boolean orderSignificant) {
 
       if (expected == null && actual == null) {
          // all good
@@ -78,8 +77,7 @@ public final class TestUtil {
          }
 
          for (int i = 0; i < actual.length; i++) {
-            TestCase.assertEquals("Array element at " + i, expected[i],
-                  actual[i]);
+            TestCase.assertEquals("Array element at " + i, expected[i], actual[i]);
          }
       }
    }

@@ -40,8 +40,7 @@ public class TutorialTest extends TestCase {
    private File testDir = new File("src/test/scripts");
 
    /** simulates a PDF print job */
-   private File acroRd32Script = TestUtil.resolveScriptForOS(testDir
-         + "/acrord32");
+   private File acroRd32Script = TestUtil.resolveScriptForOS(testDir + "/acrord32");
 
    public void testTutorialExample() throws Exception {
 
@@ -59,13 +58,12 @@ public class TutorialTest extends TestCase {
       } catch (Exception e) {
          e.printStackTrace();
          fail("[main] Printing of the following document failed : "
-               + new File(pdfFile).getAbsolutePath());
+                  + new File(pdfFile).getAbsolutePath());
          throw e;
       }
 
       // come back to check the print result
-      System.out
-            .println("[main] Test is exiting but waiting for the print job to finish...");
+      System.out.println("[main] Test is exiting but waiting for the print job to finish...");
       printResult.waitFor();
       System.out.println("[main] The print job has finished ...");
    }
@@ -76,16 +74,15 @@ public class TutorialTest extends TestCase {
     * @param file
     *           the file to print
     * @param printJobTimeout
-    *           the printJobTimeout (ms) before the watchdog terminates the
-    *           print process
+    *           the printJobTimeout (ms) before the watchdog terminates the print process
     * @param printInBackground
     *           printing done in the background or blocking
     * @return a print result handler (implementing a future)
     * @throws IOException
     *            the test failed
     */
-   public PrintResultHandler print(String file, long printJobTimeout,
-         boolean printInBackground) throws IOException {
+   public PrintResultHandler print(String file, long printJobTimeout, boolean printInBackground)
+            throws IOException {
 
       int exitValue;
       ExecuteWatchdog watchdog = null;
@@ -136,8 +133,7 @@ public class TutorialTest extends TestCase {
 
       public void onProcessComplete(int exitValue) {
          super.onProcessComplete(exitValue);
-         System.out
-               .println("[resultHandler] The document was successfully printed ...");
+         System.out.println("[resultHandler] The document was successfully printed ...");
       }
 
       public void onProcessFailed(ExecuteException e) {
@@ -146,8 +142,7 @@ public class TutorialTest extends TestCase {
             System.err.println("[resultHandler] The print process timed out");
          } else {
             System.err
-                  .println("[resultHandler] The print process failed to do : "
-                        + e.getMessage());
+                     .println("[resultHandler] The print process failed to do : " + e.getMessage());
          }
       }
    }

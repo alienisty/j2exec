@@ -32,10 +32,8 @@ public class StringUtilTest extends TestCase {
       vars.put("foo", "FOO");
       vars.put("bar", "BAR");
 
-      assertEquals(
-            "This is a FOO & BAR test",
-            StringUtils.stringSubstitution("This is a FOO & BAR test", vars,
-                  true).toString());
+      assertEquals("This is a FOO & BAR test",
+               StringUtils.stringSubstitution("This is a FOO & BAR test", vars, true).toString());
    }
 
    /**
@@ -46,32 +44,28 @@ public class StringUtilTest extends TestCase {
       vars.put("foo", "FOO");
       vars.put("bar", "BAR");
 
-      assertEquals(
-            "This is a FOO & BAR test",
-            StringUtils.stringSubstitution("This is a ${foo} & ${bar} test",
-                  vars, true).toString());
-      assertEquals(
-            "This is a FOO & BAR test",
-            StringUtils.stringSubstitution("This is a ${foo} & ${bar} test",
-                  vars, false).toString());
+      assertEquals("This is a FOO & BAR test",
+               StringUtils.stringSubstitution("This is a ${foo} & ${bar} test", vars, true)
+                        .toString());
+      assertEquals("This is a FOO & BAR test",
+               StringUtils.stringSubstitution("This is a ${foo} & ${bar} test", vars, false)
+                        .toString());
    }
 
    /**
-    * Test an incomplete string substitution where not all placeholders are
-    * expanded.
+    * Test an incomplete string substitution where not all placeholders are expanded.
     */
    public void testIncompleteSubstitution() throws Exception {
 
       Map<String, String> vars = new HashMap<String, String>();
       vars.put("foo", "FOO");
 
-      assertEquals("This is a FOO & ${bar} test", StringUtils
-            .stringSubstitution("This is a ${foo} & ${bar} test", vars, true)
-            .toString());
+      assertEquals("This is a FOO & ${bar} test",
+               StringUtils.stringSubstitution("This is a ${foo} & ${bar} test", vars, true)
+                        .toString());
 
       try {
-         StringUtils.stringSubstitution("This is a ${foo} & ${bar} test", vars,
-               false).toString();
+         StringUtils.stringSubstitution("This is a ${foo} & ${bar} test", vars, false).toString();
          fail();
       } catch (RuntimeException e) {
          // nothing to do
@@ -85,9 +79,8 @@ public class StringUtilTest extends TestCase {
       Map<String, String> vars = new HashMap<String, String>();
       vars.put("foo", "FOO");
 
-      assertEquals(
-            "This is a FOO & ${}} test",
-            StringUtils.stringSubstitution("This is a ${foo} & ${}} test",
-                  vars, true).toString());
+      assertEquals("This is a FOO & ${}} test",
+               StringUtils.stringSubstitution("This is a ${foo} & ${}} test", vars, true)
+                        .toString());
    }
 }

@@ -28,9 +28,8 @@ import org.apache.commons.exec.util.DebugUtils;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 
 /**
- * Copies standard output and error of subprocesses to standard output and error
- * of the parent process. If output or error stream are set to null, any
- * feedback from that stream will be lost.
+ * Copies standard output and error of subprocesses to standard output and error of the parent
+ * process. If output or error stream are set to null, any feedback from that stream will be lost.
  */
 public class PumpStreamHandler implements ExecuteStreamHandler {
 
@@ -88,8 +87,7 @@ public class PumpStreamHandler implements ExecuteStreamHandler {
     * @param input
     *           the input <CODE>InputStream</CODE>.
     */
-   public PumpStreamHandler(final OutputStream out, final OutputStream err,
-         final InputStream input) {
+   public PumpStreamHandler(final OutputStream out, final OutputStream err, final InputStream input) {
 
       this.out = out;
       this.err = err;
@@ -97,8 +95,7 @@ public class PumpStreamHandler implements ExecuteStreamHandler {
    }
 
    /**
-    * Set the <CODE>InputStream</CODE> from which to read the standard output of
-    * the process.
+    * Set the <CODE>InputStream</CODE> from which to read the standard output of the process.
     * 
     * @param is
     *           the <CODE>InputStream</CODE>.
@@ -110,8 +107,7 @@ public class PumpStreamHandler implements ExecuteStreamHandler {
    }
 
    /**
-    * Set the <CODE>InputStream</CODE> from which to read the standard error of
-    * the process.
+    * Set the <CODE>InputStream</CODE> from which to read the standard error of the process.
     * 
     * @param is
     *           the <CODE>InputStream</CODE>.
@@ -123,8 +119,7 @@ public class PumpStreamHandler implements ExecuteStreamHandler {
    }
 
    /**
-    * Set the <CODE>OutputStream</CODE> by means of which input can be sent to
-    * the process.
+    * Set the <CODE>OutputStream</CODE> by means of which input can be sent to the process.
     * 
     * @param os
     *           the <CODE>OutputStream</CODE>.
@@ -203,8 +198,7 @@ public class PumpStreamHandler implements ExecuteStreamHandler {
          try {
             err.flush();
          } catch (IOException e) {
-            String msg = "Got exception while flushing the error stream : "
-                  + e.getMessage();
+            String msg = "Got exception while flushing the error stream : " + e.getMessage();
             DebugUtils.handleException(msg, e);
          }
       }
@@ -245,8 +239,7 @@ public class PumpStreamHandler implements ExecuteStreamHandler {
     * @param os
     *           the <CODE>OutputStream</CODE>.
     */
-   protected void createProcessOutputPump(final InputStream is,
-         final OutputStream os) {
+   protected void createProcessOutputPump(final InputStream is, final OutputStream os) {
       outputThread = createPump(is, os);
    }
 
@@ -258,15 +251,14 @@ public class PumpStreamHandler implements ExecuteStreamHandler {
     * @param os
     *           the <CODE>OutputStream</CODE>.
     */
-   protected void createProcessErrorPump(final InputStream is,
-         final OutputStream os) {
+   protected void createProcessErrorPump(final InputStream is, final OutputStream os) {
       errorThread = createPump(is, os);
    }
 
    /**
-    * Creates a stream pumper to copy the given input stream to the given output
-    * stream. When the 'os' is an PipedOutputStream we are closing 'os'
-    * afterwards to avoid an IOException ("Write end dead").
+    * Creates a stream pumper to copy the given input stream to the given output stream. When the
+    * 'os' is an PipedOutputStream we are closing 'os' afterwards to avoid an IOException
+    * ("Write end dead").
     * 
     * @param is
     *           the input stream to copy from
@@ -276,14 +268,12 @@ public class PumpStreamHandler implements ExecuteStreamHandler {
     */
    protected Thread createPump(final InputStream is, final OutputStream os) {
 
-      boolean closeWhenExhausted = (os instanceof PipedOutputStream ? true
-            : false);
+      boolean closeWhenExhausted = (os instanceof PipedOutputStream ? true : false);
       return createPump(is, os, closeWhenExhausted);
    }
 
    /**
-    * Creates a stream pumper to copy the given input stream to the given output
-    * stream.
+    * Creates a stream pumper to copy the given input stream to the given output stream.
     * 
     * @param is
     *           the input stream to copy from
@@ -294,16 +284,15 @@ public class PumpStreamHandler implements ExecuteStreamHandler {
     * @return the stream pumper thread
     */
    protected Thread createPump(final InputStream is, final OutputStream os,
-         final boolean closeWhenExhausted) {
-      final Thread result = new Thread(new StreamPumper(is, os,
-            closeWhenExhausted), "Exec Stream Pumper");
+            final boolean closeWhenExhausted) {
+      final Thread result = new Thread(new StreamPumper(is, os, closeWhenExhausted),
+               "Exec Stream Pumper");
       result.setDaemon(true);
       return result;
    }
 
    /**
-    * Creates a stream pumper to copy the given input stream to the given output
-    * stream.
+    * Creates a stream pumper to copy the given input stream to the given output stream.
     * 
     * @param is
     *           the System.in input stream to copy from
@@ -313,8 +302,7 @@ public class PumpStreamHandler implements ExecuteStreamHandler {
     */
    private Thread createSystemInPump(InputStream is, OutputStream os) {
       inputStreamPumper = new InputStreamPumper(is, os);
-      final Thread result = new Thread(inputStreamPumper,
-            "Exec Input Stream Pumper");
+      final Thread result = new Thread(inputStreamPumper, "Exec Input Stream Pumper");
       result.setDaemon(true);
       return result;
    }

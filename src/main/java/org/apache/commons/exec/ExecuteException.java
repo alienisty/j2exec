@@ -64,10 +64,8 @@ public class ExecuteException extends IOException {
     * @param cause
     *           The underlying cause
     */
-   public ExecuteException(final String message, int exitValue,
-         final Throwable cause) {
-      super(message + " (Exit value: " + exitValue + ". Caused by " + cause
-            + ")");
+   public ExecuteException(final String message, int exitValue, final Throwable cause) {
+      super(message + " (Exit value: " + exitValue + ". Caused by " + cause + ")");
       this.cause = cause; // Two-argument version requires JDK 1.4 or later
       this.exitValue = exitValue;
    }

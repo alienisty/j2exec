@@ -25,14 +25,12 @@ import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.environment.EnvironmentUtils;
 
 /**
- * A command launcher for a particular JVM/OS platform. This class is a general
- * purpose command launcher which can only launch commands in the current
- * working directory.
+ * A command launcher for a particular JVM/OS platform. This class is a general purpose command
+ * launcher which can only launch commands in the current working directory.
  */
 public abstract class CommandLauncherImpl implements CommandLauncher {
 
-   public Process exec(final CommandLine cmd, final Map<String, String> env)
-         throws IOException {
+   public Process exec(final CommandLine cmd, final Map<String, String> env) throws IOException {
       String[] envVar = EnvironmentUtils.toStrings(env);
       return Runtime.getRuntime().exec(cmd.toStrings(), envVar);
    }

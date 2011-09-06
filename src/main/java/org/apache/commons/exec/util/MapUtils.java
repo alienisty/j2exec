@@ -24,8 +24,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 /**
- * Helper classes to manipulate maps to pass substition map to the CommandLine.
- * This class is not part of the public API and could change without warning.
+ * Helper classes to manipulate maps to pass substition map to the CommandLine. This class is not
+ * part of the public API and could change without warning.
  * 
  * @author <a href="mailto:siegfried.goeschl@it20one.at">Siegfried Goeschl</a>
  */
@@ -49,8 +49,8 @@ public class MapUtils {
    }
 
    /**
-    * Clones a map and prefixes the keys in the clone, e.g. for mapping
-    * "JAVA_HOME" to "env.JAVA_HOME" to simulate the behaviour of ANT.
+    * Clones a map and prefixes the keys in the clone, e.g. for mapping "JAVA_HOME" to
+    * "env.JAVA_HOME" to simulate the behaviour of ANT.
     * 
     * @param source
     *           the source map

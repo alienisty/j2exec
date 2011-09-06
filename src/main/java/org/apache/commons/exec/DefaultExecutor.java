@@ -28,12 +28,11 @@ import org.apache.commons.exec.launcher.CommandLauncherFactory;
  * <ul>
  * <li>set a current working directory for the subprocess</li>
  * <li>provide a set of environment variables passed to the subprocess</li>
- * <li>capture the subprocess output of stdout and stderr using an
- * ExecuteStreamHandler</li>
+ * <li>capture the subprocess output of stdout and stderr using an ExecuteStreamHandler</li>
  * <li>kill long-running processes using an ExecuteWatchdog</li>
  * <li>define a set of expected exit values</li>
- * <li>terminate any started processes when the main process is terminating
- * using a ProcessDestroyer</li>
+ * <li>terminate any started processes when the main process is terminating using a ProcessDestroyer
+ * </li>
  * </ul>
  * 
  * The following example shows the basic usage:
@@ -68,14 +67,13 @@ public class DefaultExecutor implements Executor {
    private Thread executorThread;
 
    /**
-    * Default constructor creating a default <code>PumpStreamHandler</code> and
-    * sets the working directory of the subprocess to the current working
-    * directory.
+    * Default constructor creating a default <code>PumpStreamHandler</code> and sets the working
+    * directory of the subprocess to the current working directory.
     * 
-    * The <code>PumpStreamHandler</code> pumps the output of the subprocess into
-    * our <code>System.out</code> and <code>System.err</code> to avoid into our
-    * <code>System.out</code> and <code>System.err</code> to avoid a blocked or
-    * deadlocked subprocess (see{@link java.lang.Process Process}).
+    * The <code>PumpStreamHandler</code> pumps the output of the subprocess into our
+    * <code>System.out</code> and <code>System.err</code> to avoid into our <code>System.out</code>
+    * and <code>System.err</code> to avoid a blocked or deadlocked subprocess (see
+    * {@link java.lang.Process Process}).
     */
    public DefaultExecutor() {
       this.streamHandler = new PumpStreamHandler();
@@ -143,8 +141,7 @@ public class DefaultExecutor implements Executor {
    /**
     * @see org.apache.commons.exec.Executor#execute(CommandLine)
     */
-   public int execute(final CommandLine command) throws ExecuteException,
-         IOException {
+   public int execute(final CommandLine command) throws ExecuteException, IOException {
       return execute(command, (Map<String, String>) null);
    }
 
@@ -152,14 +149,13 @@ public class DefaultExecutor implements Executor {
     * @see org.apache.commons.exec.Executor#execute(CommandLine, java.util.Map)
     */
    public int execute(final CommandLine command, Map<String, String> environment)
-         throws ExecuteException, IOException {
+            throws ExecuteException, IOException {
 
       if (workingDirectory != null && !workingDirectory.exists()) {
          throw new IOException(workingDirectory + " doesn't exist.");
       }
 
-      return executeInternal(command, environment, workingDirectory,
-            streamHandler);
+      return executeInternal(command, environment, workingDirectory, streamHandler);
 
    }
 
@@ -168,7 +164,7 @@ public class DefaultExecutor implements Executor {
     *      org.apache.commons.exec.ExecuteResultHandler)
     */
    public void execute(final CommandLine command, ExecuteResultHandler handler)
-         throws ExecuteException, IOException {
+            throws ExecuteException, IOException {
       execute(command, null, handler);
    }
 
@@ -176,10 +172,8 @@ public class DefaultExecutor implements Executor {
     * @see org.apache.commons.exec.Executor#execute(CommandLine, java.util.Map,
     *      org.apache.commons.exec.ExecuteResultHandler)
     */
-   public void execute(final CommandLine command,
-         final Map<String, String> environment,
-         final ExecuteResultHandler handler) throws ExecuteException,
-         IOException {
+   public void execute(final CommandLine command, final Map<String, String> environment,
+            final ExecuteResultHandler handler) throws ExecuteException, IOException {
 
       if (workingDirectory != null && !workingDirectory.exists()) {
          throw new IOException(workingDirectory + " doesn't exist.");
@@ -189,14 +183,12 @@ public class DefaultExecutor implements Executor {
          public void run() {
             int exitValue = Executor.INVALID_EXITVALUE;
             try {
-               exitValue = executeInternal(command, environment,
-                     workingDirectory, streamHandler);
+               exitValue = executeInternal(command, environment, workingDirectory, streamHandler);
                handler.onProcessComplete(exitValue);
             } catch (ExecuteException e) {
                handler.onProcessFailed(e);
             } catch (Exception e) {
-               handler.onProcessFailed(new ExecuteException("Execution failed",
-                     exitValue, e));
+               handler.onProcessFailed(new ExecuteException("Execution failed", exitValue, e));
             }
          }
       };
@@ -233,8 +225,7 @@ public class DefaultExecutor implements Executor {
    }
 
    /**
-    * Factory method to create a thread waiting for the result of an
-    * asynchronous execution.
+    * Factory method to create a thread waiting for the result of an asynchronous execution.
     * 
     * @param runnable
     *           the runnable passed to the thread
@@ -259,8 +250,8 @@ public class DefaultExecutor implements Executor {
     * @throws IOException
     *            forwarded from the particular launcher used
     */
-   protected Process launch(final CommandLine command,
-         final Map<String, String> env, final File dir) throws IOException {
+   protected Process launch(final CommandLine command, final Map<String, String> env, final File dir)
+            throws IOException {
 
       if (this.launcher == null) {
          throw new IllegalStateException("CommandLauncher can not be null");
@@ -282,10 +273,9 @@ public class DefaultExecutor implements Executor {
    }
 
    /**
-    * Close the streams belonging to the given Process. In the original
-    * implementation all exceptions were dropped which is probably not a good
-    * thing. On the other hand the signature allows throwing an IOException so
-    * the current implementation might be quite okay.
+    * Close the streams belonging to the given Process. In the original implementation all
+    * exceptions were dropped which is probably not a good thing. On the other hand the signature
+    * allows throwing an IOException so the current implementation might be quite okay.
     * 
     * @param process
     *           the <CODE>Process</CODE>.
@@ -334,9 +324,8 @@ public class DefaultExecutor implements Executor {
     * @throws IOException
     *            executing the process failed
     */
-   private int executeInternal(final CommandLine command,
-         final Map<String, String> environment, final File dir,
-         final ExecuteStreamHandler streams) throws IOException {
+   private int executeInternal(final CommandLine command, final Map<String, String> environment,
+            final File dir, final ExecuteStreamHandler streams) throws IOException {
 
       final Process process = this.launch(command, environment, dir);
 
@@ -396,8 +385,7 @@ public class DefaultExecutor implements Executor {
          }
 
          if (this.isFailure(exitValue)) {
-            throw new ExecuteException("Process exited with an error: "
-                  + exitValue, exitValue);
+            throw new ExecuteException("Process exited with an error: " + exitValue, exitValue);
          }
 
          return exitValue;

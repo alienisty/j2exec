@@ -23,8 +23,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * Used by <code>Execute</code> to handle input and output stream of
- * subprocesses.
+ * Used by <code>Execute</code> to handle input and output stream of subprocesses.
  */
 public interface ExecuteStreamHandler {
 
@@ -32,8 +31,7 @@ public interface ExecuteStreamHandler {
     * Install a handler for the input stream of the subprocess.
     * 
     * @param os
-    *           output stream to write to the standard input stream of the
-    *           subprocess
+    *           output stream to write to the standard input stream of the subprocess
     */
    void setProcessInputStream(OutputStream os) throws IOException;
 
@@ -59,8 +57,7 @@ public interface ExecuteStreamHandler {
    void start() throws IOException;
 
    /**
-    * Stop handling of the streams - will not be restarted. Will wait for pump
-    * threads to complete.
+    * Stop handling of the streams - will not be restarted. Will wait for pump threads to complete.
     */
    void stop();
 }

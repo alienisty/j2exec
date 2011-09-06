@@ -33,8 +33,7 @@ public class LogOutputStreamTest extends TestCase {
    private Executor exec = new DefaultExecutor();
    private File testDir = new File("src/test/scripts");
    private OutputStream systemOut;
-   private File environmentScript = TestUtil.resolveScriptForOS(testDir
-         + "/environment");
+   private File environmentScript = TestUtil.resolveScriptForOS(testDir + "/environment");
 
    static {
       // turn on debug mode and throw an exception for each encountered problem

@@ -15,8 +15,7 @@ final class CommandProcessor {
    }
 
    private static final class Threads implements ThreadFactory {
-      private static final ThreadFactory BASE_FACTORY = Executors
-            .defaultThreadFactory();
+      private static final ThreadFactory BASE_FACTORY = Executors.defaultThreadFactory();
 
       @Override
       public Thread newThread(Runnable r) {

@@ -20,17 +20,17 @@ public final class ProcessInvocationHandler implements InvocationHandler {
    @NonNull
    private final ProcessBuilder builder;
    @NonNull
-   private final int[] paremetersMapping;
+   private final Argument[] arguments;
 
-   public ProcessInvocationHandler(@NonNull ProcessBuilder builder,
-         @NonNull int[] paremetersMapping) {
+   public ProcessInvocationHandler(@NonNull Method method, @NonNull ProcessBuilder builder,
+            @NonNull List<Argument> arguments) {
       this.builder = builder;
-      this.paremetersMapping = paremetersMapping;
+      this.arguments = arguments.toArray(new Argument[arguments.size()]);
+
    }
 
    @Override
-   public Object invoke(Object proxy, Method method, Object[] args)
-         throws Throwable {
+   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
       Process process;
       OutputProcessor processor = OutputProcessor.SINK;
       ErrorBuilder<?> error = null;
@@ -38,7 +38,7 @@ public final class ProcessInvocationHandler implements InvocationHandler {
          final List<String> command = builder.command();
          for (int i = args.length; --i >= 0;) {
             final int paramIndex;
-            switch (paramIndex = paremetersMapping[i]) {
+            switch (paramIndex = arguments[i].getIndex()) {
             case CommandBuilder.OUTPUT_PROCESSOR:
                processor = (OutputProcessor) args[i];
                break;
@@ -46,7 +46,9 @@ public final class ProcessInvocationHandler implements InvocationHandler {
                error = (ErrorBuilder<?>) args[i];
                break;
             default:
-               command.set(paramIndex, String.valueOf(args[i]));
+               // We use toString() on the argument value to force an NPE if the
+               // value is not provided
+               command.set(paramIndex, arguments[i].apply(args[i].toString()));
             }
          }
          process = builder.start();
@@ -72,8 +74,7 @@ public final class ProcessInvocationHandler implements InvocationHandler {
       return null;
    }
 
-   private static void processOutput(Process process, OutputProcessor processor)
-         throws IOException {
+   private static void processOutput(Process process, OutputProcessor processor) throws IOException {
       InputStream is = process.getInputStream();
       byte[] buffer = new byte[4096];
       int read;

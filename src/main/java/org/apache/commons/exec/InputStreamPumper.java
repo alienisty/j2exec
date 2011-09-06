@@ -24,8 +24,7 @@ import java.io.OutputStream;
 import org.apache.commons.exec.util.DebugUtils;
 
 /**
- * Copies all data from an System.input stream to an output stream of the
- * executed process.
+ * Copies all data from an System.input stream to an output stream of the executed process.
  * 
  * @author mkleint
  */
@@ -55,8 +54,8 @@ public class InputStreamPumper implements Runnable {
    }
 
    /**
-    * Copies data from the input stream to the output stream. Terminates as soon
-    * as the input stream is closed or an error occurs.
+    * Copies data from the input stream to the output stream. Terminates as soon as the input stream
+    * is closed or an error occurs.
     */
    public void run() {
       try {

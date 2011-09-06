@@ -27,8 +27,8 @@ import java.util.Map;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
- * Supplement of commons-lang, the stringSubstitution() was in a simpler
- * implementation available in an older commons-lang implementation.
+ * Supplement of commons-lang, the stringSubstitution() was in a simpler implementation available in
+ * an older commons-lang implementation.
  * 
  * This class is not part of the public API and could change without warning.
  * 
@@ -38,13 +38,11 @@ public class StringUtils {
 
    private static final String SINGLE_QUOTE = "\'";
    private static final String DOUBLE_QUOTE = "\"";
-   private static final char OTHER_SEPARATOR = separatorChar == '/' ? '\\'
-         : '/';
+   private static final char OTHER_SEPARATOR = separatorChar == '/' ? '\\' : '/';
 
    /**
-    * Perform a series of substitutions. The substitutions are performed by
-    * replacing ${variable} in the target string with the value of provided by
-    * the key "variable" in the provided hash table.
+    * Perform a series of substitutions. The substitutions are performed by replacing ${variable} in
+    * the target string with the value of provided by the key "variable" in the provided hash table.
     * <p/>
     * <p/>
     * A key consists of the following characters:
@@ -65,8 +63,8 @@ public class StringUtils {
     *           ignore a key not found in vars or throw a RuntimeException?
     * @return String target string with replacements.
     */
-   public static String stringSubstitution(@NonNull String str,
-         @NonNull Map<String, String> vars, boolean isLenient) {
+   public static String stringSubstitution(@NonNull String str, @NonNull Map<String, String> vars,
+            boolean isLenient) {
 
       if (vars.isEmpty() && isLenient) {
          return str;
@@ -89,8 +87,7 @@ public class StringUtils {
                         if (isLenient) {
                            result.append("${").append(name).append('}');
                         } else {
-                           throw new RuntimeException("No value found for : "
-                                 + name);
+                           throw new RuntimeException("No value found for : " + name);
                         }
                      } else {
                         result.append(value);
@@ -106,11 +103,11 @@ public class StringUtils {
                         continue;
                      }
                   }
-                  throw new RuntimeException("Syntax error at " + (cIdx + 1)
-                        + " in \"" + str + "\"");
+                  throw new RuntimeException("Syntax error at " + (cIdx + 1) + " in \"" + str
+                           + "\"");
                }
                throw new RuntimeException("Delimiter not found for : "
-                     + str.substring(vStart, cIdx));
+                        + str.substring(vStart, cIdx));
             } else {
                result.append('$');
             }
@@ -143,8 +140,7 @@ public class StringUtils {
    }
 
    /**
-    * Fixes the file separator char for the target platform using the following
-    * replacement.
+    * Fixes the file separator char for the target platform using the following replacement.
     * 
     * <ul>
     * <li>'/' ==> File.separatorChar
@@ -182,9 +178,8 @@ public class StringUtils {
    /**
     * Put quotes around the given String if necessary.
     * <p>
-    * If the argument doesn't include spaces or quotes, return it as is. If it
-    * contains double quotes, use single quotes - else surround the argument by
-    * double quotes.
+    * If the argument doesn't include spaces or quotes, return it as is. If it contains double
+    * quotes, use single quotes - else surround the argument by double quotes.
     * </p>
     * 
     * @param argument
@@ -198,30 +193,24 @@ public class StringUtils {
       String cleanedArgument = argument.trim();
 
       // strip the quotes from both ends
-      while (cleanedArgument.startsWith(SINGLE_QUOTE)
-            || cleanedArgument.startsWith(DOUBLE_QUOTE)) {
+      while (cleanedArgument.startsWith(SINGLE_QUOTE) || cleanedArgument.startsWith(DOUBLE_QUOTE)) {
          cleanedArgument = cleanedArgument.substring(1);
       }
 
-      while (cleanedArgument.endsWith(SINGLE_QUOTE)
-            || cleanedArgument.endsWith(DOUBLE_QUOTE)) {
-         cleanedArgument = cleanedArgument.substring(0,
-               cleanedArgument.length() - 1);
+      while (cleanedArgument.endsWith(SINGLE_QUOTE) || cleanedArgument.endsWith(DOUBLE_QUOTE)) {
+         cleanedArgument = cleanedArgument.substring(0, cleanedArgument.length() - 1);
       }
 
       final StringBuffer buf = new StringBuffer();
       if (cleanedArgument.indexOf(DOUBLE_QUOTE) > -1) {
          if (cleanedArgument.indexOf(SINGLE_QUOTE) > -1) {
             throw new IllegalArgumentException(
-                  "Can't handle single and double quotes in same argument");
+                     "Can't handle single and double quotes in same argument");
          } else {
-            return buf.append(SINGLE_QUOTE).append(cleanedArgument)
-                  .append(SINGLE_QUOTE).toString();
+            return buf.append(SINGLE_QUOTE).append(cleanedArgument).append(SINGLE_QUOTE).toString();
          }
-      } else if (cleanedArgument.indexOf(SINGLE_QUOTE) > -1
-            || cleanedArgument.indexOf(" ") > -1) {
-         return buf.append(DOUBLE_QUOTE).append(cleanedArgument)
-               .append(DOUBLE_QUOTE).toString();
+      } else if (cleanedArgument.indexOf(SINGLE_QUOTE) > -1 || cleanedArgument.indexOf(" ") > -1) {
+         return buf.append(DOUBLE_QUOTE).append(cleanedArgument).append(DOUBLE_QUOTE).toString();
       } else {
          return cleanedArgument;
       }
@@ -235,9 +224,7 @@ public class StringUtils {
     * @return true when the argument is quoted
     */
    public static boolean isQuoted(final String argument) {
-      return (argument.startsWith(SINGLE_QUOTE) && argument
-            .endsWith(SINGLE_QUOTE))
-            || (argument.startsWith(DOUBLE_QUOTE) && argument
-                  .endsWith(DOUBLE_QUOTE));
+      return (argument.startsWith(SINGLE_QUOTE) && argument.endsWith(SINGLE_QUOTE))
+               || (argument.startsWith(DOUBLE_QUOTE) && argument.endsWith(DOUBLE_QUOTE));
    }
 }

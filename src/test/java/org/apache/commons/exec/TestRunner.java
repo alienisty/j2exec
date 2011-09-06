@@ -26,8 +26,7 @@ import org.apache.commons.exec.environment.EnvironmentUtilTest;
 import org.apache.commons.exec.util.MapUtilTest;
 
 /**
- * A stand-alone JUnit invocation to allow running JUnit tests without having
- * ANT or M2 installed.
+ * A stand-alone JUnit invocation to allow running JUnit tests without having ANT or M2 installed.
  */
 public class TestRunner extends TestCase {
 
@@ -44,8 +43,7 @@ public class TestRunner extends TestCase {
    public static void main(String[] args) {
 
       Test test = TestRunner.suite();
-      junit.textui.TestRunner testRunner = new junit.textui.TestRunner(
-            System.out);
+      junit.textui.TestRunner testRunner = new junit.textui.TestRunner(System.out);
       TestResult testResult = testRunner.doRun(test);
 
       if (!testResult.wasSuccessful()) {

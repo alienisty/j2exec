@@ -26,9 +26,9 @@ import java.util.TreeMap;
 import org.apache.commons.exec.OS;
 
 /**
- * Helper class to determine the environment variable for the OS. Depending on
- * the JDK the environment variables can be either retrieved directly from the
- * JVM or requires starting a process to get them running an OS command line.
+ * Helper class to determine the environment variable for the OS. Depending on the JDK the
+ * environment variables can be either retrieved directly from the JVM or requires starting a
+ * process to get them running an OS command line.
  */
 public class DefaultProcessingEnvironment {
 
@@ -42,8 +42,7 @@ public class DefaultProcessingEnvironment {
     * @throws IOException
     *            obtaining the environment variables failed
     */
-   public synchronized Map<String, String> getProcEnvironment()
-         throws IOException {
+   public synchronized Map<String, String> getProcEnvironment() throws IOException {
 
       if (procEnvironment == null) {
          procEnvironment = this.createProcEnvironment();
@@ -64,9 +63,8 @@ public class DefaultProcessingEnvironment {
     * @throws IOException
     *            the operation failed
     * @throws SecurityException
-    *            if a security manager exists and its
-    *            {@link SecurityManager#checkPermission checkPermission} method
-    *            doesn't allow access to the process environment
+    *            if a security manager exists and its {@link SecurityManager#checkPermission
+    *            checkPermission} method doesn't allow access to the process environment
     */
    protected Map<String, String> createProcEnvironment() throws IOException {
       if (procEnvironment == null) {
@@ -79,11 +77,10 @@ public class DefaultProcessingEnvironment {
    }
 
    /**
-    * Creates a map that obeys the casing rules of the current platform for key
-    * lookup. E.g. on a Windows platform, the map keys will be case-insensitive.
+    * Creates a map that obeys the casing rules of the current platform for key lookup. E.g. on a
+    * Windows platform, the map keys will be case-insensitive.
     * 
-    * @return The map for storage of environment variables, never
-    *         <code>null</code>.
+    * @return The map for storage of environment variables, never <code>null</code>.
     */
    private Map<String, String> createEnvironmentMap() {
       if (OS.isFamilyWindows()) {
