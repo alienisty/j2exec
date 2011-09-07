@@ -10,9 +10,32 @@ import java.util.List;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 public final class CommandBuilder {
-   static final int OUTPUT_PROCESSOR = -1;
-   static final int ERROR_PROCESSOR = -2;
 
+   /**
+    * TODO Parse strings with the following format:
+    * 
+    * <pre>
+    *    <cmd> ([<option>]['{?}'])*
+    * </pre>
+    * 
+    * The string "{?}" is a binding parameter, similarly to the one found in JDBC. Like in JDBC they
+    * are positional, so the first maps to the first parameter in the interface method, the second
+    * to the second and so on.
+    * 
+    * TODO example
+    * 
+    * Note allowed format for the interface:
+    * <ul>
+    * <li>must be a closure (single method)
+    * <li>parameters mapping to arguments must be at the beginning (in order of mapping)
+    * <li>OutputProcessors must be last parameters
+    * <li>You can only have either an OutputProcessor or a ResultBuilder and/or an ErrorBuilder.
+    * </ul>
+    * 
+    * @param call
+    * @param type
+    * @return
+    */
    public static <T> T build(String call, Class<? extends T> type) {
 
       if (!type.isInterface()) {
