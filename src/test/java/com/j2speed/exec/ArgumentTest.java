@@ -18,5 +18,4 @@ public class ArgumentTest {
       assertEquals("-d=value", argument.apply("value"));
       assertEquals("-d=12", argument.apply(12));
    }
-
 }

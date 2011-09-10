@@ -3,6 +3,11 @@
  */
 package com.j2speed.exec;
 
+import static com.j2speed.exec.Controller.done;
+import static com.j2speed.exec.Controller.register;
+import static com.j2speed.exec.Controller.start;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationHandler;
@@ -10,6 +15,7 @@ import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.List;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
@@ -18,33 +24,46 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * @author Alessandro Nistico
  */
 public final class ProcessInvocationHandler implements InvocationHandler {
-   private static final int OUTPUT_PROCESSOR = 1;
-   private static final int ERROR_BUILDER = 2;
+
+   private final int normalTermination;
    @NonNull
    private final ProcessBuilder builder;
    @NonNull
    private final Argument[] arguments;
    @NonNull
    private final int[] paramsTypes;
+   @CheckForNull
+   private final ResultBuilderFactory<?> resultBuilderFactory;
+   @CheckForNull
+   private final ErrorBuilderFactory<?> errorBuilderFactory;
 
-   public ProcessInvocationHandler(@NonNull Method method, @NonNull ProcessBuilder builder,
-            @NonNull List<Argument> arguments) {
+   public ProcessInvocationHandler(@NonNull Method method,
+            @CheckForNull ResultBuilderFactory<?> resultBuilderFactory,
+            @CheckForNull ErrorBuilderFactory<?> errorBuilderFactory,
+            @NonNull ProcessBuilder builder, @NonNull List<Argument> arguments) {
 
       final int argsCount = arguments.size();
       final Class<?>[] params = method.getParameterTypes();
       final int paramsCount;
+
       if ((paramsCount = params.length) < argsCount) {
          throw new IllegalArgumentException("Not enough parameters in the method");
       }
 
+      this.normalTermination = 0;
       this.builder = builder;
-
       this.arguments = new Argument[argsCount];
       this.paramsTypes = new int[paramsCount];
+      this.resultBuilderFactory = resultBuilderFactory;
+      this.errorBuilderFactory = errorBuilderFactory;
 
       mapArguments(arguments, argsCount, params);
 
-      mapProcessors(argsCount, params, paramsCount);
+      if (resultBuilderFactory == null) {
+         if (!OutputProcessor.class.isAssignableFrom(params[argsCount])) {
+            throw new IllegalArgumentException("Unsupported parameter type " + params[argsCount]);
+         }
+      }
    }
 
    private void mapArguments(List<Argument> arguments, final int argsCount, final Class<?>[] params) {
@@ -58,33 +77,23 @@ public final class ProcessInvocationHandler implements InvocationHandler {
       }
    }
 
-   private void mapProcessors(final int argsCount, final Class<?>[] params, final int paramsCount) {
-      boolean errorBuilderSelected = false;
-      boolean outputProcessorSelected = false;
-      for (int i = argsCount; i < paramsCount; i++) {
-         final Class<?> parameter = params[i];
-         if (ErrorBuilder.class.isAssignableFrom(parameter)) {
-            if (errorBuilderSelected) {
-               throw new IllegalArgumentException("Only one error builder is allowed");
-            }
-            errorBuilderSelected = true;
-            paramsTypes[i] = ERROR_BUILDER;
-         } else if (OutputProcessor.class.isAssignableFrom(parameter)) {
-            if (outputProcessorSelected) {
-               throw new IllegalArgumentException("Only one output processor is allowed");
-            }
-            outputProcessorSelected = true;
-            paramsTypes[i] = OUTPUT_PROCESSOR;
-         } else {
-            throw new IllegalArgumentException("Unsupported parameter type " + parameter);
-         }
-      }
+   /**
+    * Sets the working directory for the invocation handler
+    * 
+    * @param workingDirectory
+    */
+   public void setWorkingDirectory(@CheckForNull File workingDirectory) {
+      builder.directory(workingDirectory);
+   }
+
+   public void setRedirectError(boolean redirect) {
+      builder.redirectErrorStream(redirect);
    }
 
    @Override
    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
       Process process;
-      ErrorBuilder<?> error = null;
+      ErrorBuilder<? extends Throwable> error = null;
       OutputProcessor processor = OutputProcessor.SINK;
       synchronized (builder) {
          final List<String> command = builder.command();
@@ -93,39 +102,52 @@ public final class ProcessInvocationHandler implements InvocationHandler {
             // We use toString() on the argument value to force an NPE if the value is not provided
             command.set((argument = arguments[i]).getIndex(), argument.apply(args[i].toString()));
          }
-         for (int i = arguments.length; i < args.length; i++) {
-            switch (paramsTypes[i]) {
-            case OUTPUT_PROCESSOR:
-               processor = (OutputProcessor) args[i];
-               break;
-            case ERROR_BUILDER:
-               error = (ErrorBuilder<?>) args[i];
-               break;
-            default:
-               throw new IllegalArgumentException("Unexpected value " + args[i]);
-            }
+         if (resultBuilderFactory != null) {
+            processor = resultBuilderFactory.create();
+         } else {
+            processor = (OutputProcessor) args[arguments.length];
          }
          process = builder.start();
       }
 
-      Controller.register(process);
+      register(process);
 
       if (!builder.redirectErrorStream()) {
          if (error == null) {
             error = new DefaultErrorBuilder();
          }
-         Controller.start(new OutputPump(process.getErrorStream(), error));
+         start(new OutputPump(process.getErrorStream(), error));
       }
       // TODO set up watchdog?
       try {
          processOutput(process, processor);
+      } catch (Throwable th) {
+         process.destroy();
       } finally {
-         cleanUp(process);
+         done(process);
       }
-      if (processor instanceof ResultBuilder<?>) {
+
+      process.waitFor();
+
+      if (process.exitValue() != normalTermination) {
+         processError(error);
+      }
+
+      if (resultBuilderFactory != null) {
          return ((ResultBuilder<?>) processor).build();
       }
+
       return null;
+   }
+
+   private static void processError(@CheckForNull ErrorBuilder<? extends Throwable> error)
+            throws Throwable {
+      if (error != null) {
+         final Throwable exception = error.build();
+         if (exception != null) {
+            throw exception;
+         }
+      }
    }
 
    private static void processOutput(Process process, OutputProcessor processor) throws IOException {

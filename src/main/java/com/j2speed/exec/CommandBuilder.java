@@ -2,11 +2,15 @@ package com.j2speed.exec;
 
 import static java.lang.reflect.Proxy.newProxyInstance;
 
+import java.io.File;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 public final class CommandBuilder {
@@ -36,7 +40,10 @@ public final class CommandBuilder {
     * @param type
     * @return
     */
-   public static <T> T build(String call, Class<? extends T> type) {
+   public static <T> T build(@NonNull String call, @NonNull Class<? extends T> type,
+            @CheckForNull ResultBuilderFactory<?> resultFactory,
+            @CheckForNull ErrorBuilderFactory<?> errorFactory, @CheckForNull File workingDir,
+            @CheckForNull Map<String, String> environment) {
 
       if (!type.isInterface()) {
          throw new IllegalArgumentException("Type must be an interface");
@@ -47,10 +54,41 @@ public final class CommandBuilder {
 
       ParsedCommand parse = parse(call);
 
-      InvocationHandler handler = new ProcessInvocationHandler(type.getMethods()[0], parse.builder,
-               parse.arguments);
+      if (workingDir != null) {
+         parse.builder.directory(workingDir);
+      }
+
+      if (environment != null && !environment.isEmpty()) {
+         parse.builder.environment().putAll(environment);
+      }
+
+      InvocationHandler handler = new ProcessInvocationHandler(type.getMethods()[0], resultFactory,
+               errorFactory, parse.builder, parse.arguments);
 
       return type.cast(newProxyInstance(type.getClassLoader(), new Class[] { type }, handler));
+   }
+
+   /**
+    * Sets the working directory for the managed command proxied through the specified object built
+    * using the {@link #build(String, Class, File, Map)} method.
+    * 
+    * @param command
+    * @param workingDir
+    */
+   public static void setWorkingDir(@NonNull Object command, @CheckForNull File workingDir) {
+      invocationHandler(command).setWorkingDirectory(workingDir);
+   }
+
+   public static void setRedirectError(@NonNull Object command, boolean redirect) {
+      invocationHandler(command).setRedirectError(redirect);
+   }
+
+   private static ProcessInvocationHandler invocationHandler(@NonNull Object command) {
+      final InvocationHandler invocationHandler = Proxy.getInvocationHandler(command);
+      if (invocationHandler instanceof ProcessInvocationHandler) {
+         return (ProcessInvocationHandler) invocationHandler;
+      }
+      throw new IllegalArgumentException("Not a managed command");
    }
 
    /**
