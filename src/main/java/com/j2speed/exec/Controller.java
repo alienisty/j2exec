@@ -1,18 +1,23 @@
 package com.j2speed.exec;
 
-import static java.util.concurrent.Executors.*;
+import static java.util.concurrent.Executors.newCachedThreadPool;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ScheduledExecutorService;
 
 import javax.annotation.concurrent.GuardedBy;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 final class Controller {
-   private static final ThreadFactory base = defaultThreadFactory();
+
+   private static final ExecutorService processors;
+
+   private static final ScheduledExecutorService watchdog;
 
    @GuardedBy("running")
    private static final Collection<Process> running = new HashSet<Process>();
@@ -21,36 +26,20 @@ final class Controller {
    private static boolean active = true;
 
    static {
-      Runtime.getRuntime().addShutdownHook(new Thread() {
-         public void run() {
-            synchronized (running) {
-               active = false;
-               for (Process process : running) {
-                  try {
-                     process.destroy();
-                  } catch (Throwable th) {
-                  }
-               }
-            }
-         }
-      });
+      processors = newCachedThreadPool(new NamedFactory("output-processor"));
+      watchdog = newSingleThreadScheduledExecutor(new NamedFactory("watchdog"));
+      Runtime.getRuntime().addShutdownHook(new ShutdownHook());
    }
 
    private Controller() {
    }
 
-   private static final ExecutorService EXECUTOR = newCachedThreadPool(new ThreadFactory() {
-      @Override
-      public Thread newThread(Runnable r) {
-         Thread thread = base.newThread(r);
-         thread.setDaemon(true);
-         return thread;
-      }
-   });
-
-   static void register(@NonNull Process process) {
+   static void register(@NonNull Process process, long timeout) {
       synchronized (running) {
          if (active) {
+            if (timeout > 0) {
+               watchdog.schedule(new Watchdog(process), timeout, MILLISECONDS);
+            }
             running.add(process);
          } else {
             process.destroy();
@@ -65,7 +54,31 @@ final class Controller {
       }
    }
 
+   static void kill(@NonNull Process process) {
+      process.destroy();
+      done(process);
+   }
+
    static void start(@NonNull OutputPump pump) {
-      EXECUTOR.execute(pump);
+      processors.execute(pump);
+   }
+
+   private static final class ShutdownHook extends Thread {
+      public ShutdownHook() {
+         super("shutdown-processor");
+      }
+
+      @Override
+      public void run() {
+         synchronized (running) {
+            active = false;
+            for (Process process : running) {
+               try {
+                  process.destroy();
+               } catch (Throwable th) {
+               }
+            }
+         }
+      }
    }
 }

@@ -27,7 +27,7 @@ public abstract class AbstractResultBuilderFactory<T> implements ResultBuilderFa
       }
    }
 
-//   @Override
+   @Override
    public final Class<? extends T> getResultType() {
       return resultType;
    }

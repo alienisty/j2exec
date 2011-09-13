@@ -26,6 +26,9 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 public final class ProcessInvocationHandler implements InvocationHandler {
 
    private final int normalTermination;
+
+   private long timeout;
+
    @NonNull
    private final ProcessBuilder builder;
    @NonNull
@@ -37,7 +40,7 @@ public final class ProcessInvocationHandler implements InvocationHandler {
    @CheckForNull
    private final ErrorBuilderFactory<?> errorBuilderFactory;
 
-   public ProcessInvocationHandler(@NonNull Method method,
+   public ProcessInvocationHandler(@NonNull Method method, long timeout,
             @CheckForNull ResultBuilderFactory<?> resultBuilderFactory,
             @CheckForNull ErrorBuilderFactory<?> errorBuilderFactory,
             @NonNull ProcessBuilder builder, @NonNull List<Argument> arguments) {
@@ -51,6 +54,7 @@ public final class ProcessInvocationHandler implements InvocationHandler {
       }
 
       this.normalTermination = 0;
+      this.timeout = timeout;
       this.builder = builder;
       this.arguments = new Argument[argsCount];
       this.paramsTypes = new int[paramsCount];
@@ -60,8 +64,16 @@ public final class ProcessInvocationHandler implements InvocationHandler {
       mapArguments(arguments, argsCount, params);
 
       if (resultBuilderFactory == null) {
-         if (!OutputProcessor.class.isAssignableFrom(params[argsCount])) {
-            throw new IllegalArgumentException("Unsupported parameter type " + params[argsCount]);
+         if (params.length > argsCount) {
+            if (!OutputProcessor.class.isAssignableFrom(params[argsCount])) {
+               throw new IllegalArgumentException("Unsupported parameter type " + params[argsCount]);
+            }
+         }
+      } else {
+         if (method.getReturnType() != resultBuilderFactory.getResultType()) {
+            throw new IllegalArgumentException("Incompatible result type "
+                     + resultBuilderFactory.getResultType() + ", expected "
+                     + method.getReturnType());
          }
       }
    }
@@ -86,14 +98,21 @@ public final class ProcessInvocationHandler implements InvocationHandler {
       builder.directory(workingDirectory);
    }
 
-   public void setRedirectError(boolean redirect) {
+   public void setRedirectErrorStream(boolean redirect) {
       builder.redirectErrorStream(redirect);
+   }
+
+   /**
+    * @param timeout
+    *           in milliseconds
+    */
+   public void setTimeout(long timeout) {
+      this.timeout = timeout;
    }
 
    @Override
    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
       Process process;
-      ErrorBuilder<? extends Throwable> error = null;
       OutputProcessor processor = OutputProcessor.SINK;
       synchronized (builder) {
          final List<String> command = builder.command();
@@ -110,15 +129,17 @@ public final class ProcessInvocationHandler implements InvocationHandler {
          process = builder.start();
       }
 
-      register(process);
+      register(process, timeout);
 
+      ErrorBuilder<? extends Throwable> error = null;
       if (!builder.redirectErrorStream()) {
-         if (error == null) {
+         if (errorBuilderFactory == null) {
             error = new DefaultErrorBuilder();
+         } else {
+            error = errorBuilderFactory.create();
          }
          start(new OutputPump(process.getErrorStream(), error));
       }
-      // TODO set up watchdog?
       try {
          processOutput(process, processor);
       } catch (Throwable th) {
@@ -157,9 +178,5 @@ public final class ProcessInvocationHandler implements InvocationHandler {
       while ((read = is.read(buffer)) != -1) {
          processor.process(buffer, read);
       }
-   }
-
-   private static void cleanUp(Process process) throws InterruptedException {
-      process.waitFor();
    }
 }

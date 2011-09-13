@@ -3,9 +3,12 @@
  */
 package com.j2speed.exec;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
+
 /**
- * @author alex
+ * An argument for a command.
  * 
+ * @author alex
  */
 public final class Argument {
    private final StringBuilder buffer;
@@ -20,11 +23,24 @@ public final class Argument {
       this.index = index;
    }
 
+   /**
+    * The position for the argument in the parsed command.
+    * 
+    * @return
+    */
    public int getIndex() {
       return index;
    }
 
-   public String apply(Object value) {
+   /**
+    * Apply the value for the argument to be used in a command invocation.
+    * 
+    * @param value
+    *           the value use for the invocation.
+    * 
+    * @return the string to use in the command line.
+    */
+   public String apply(@NonNull Object value) {
       try {
          return buffer.append(value).append(postfix).toString();
       } finally {

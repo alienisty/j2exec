@@ -7,6 +7,6 @@ public interface ResultBuilderFactory<T> {
    @NonNull
    ResultBuilder<T> create();
 
-//   @NonNull
-//   Class<? extends T> getResultType();
+   @NonNull
+   Class<? extends T> getResultType();
 }
