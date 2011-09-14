@@ -13,12 +13,18 @@ import java.util.Map;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
-public final class CommandBuilder {
+public final class CommandCompiler {
 
    @NonNull
    private final ProcessBuilder builder;
    @NonNull
    private final List<Argument> arguments;
+   @CheckForNull
+   private ResultBuilderFactory<?> resultBuilderFactory;
+   @CheckForNull
+   private ErrorBuilderFactory<?> errorBuilderFactory;
+
+   private int normalTermination = 0;
 
    private long timeout;
 
@@ -50,7 +56,7 @@ public final class CommandBuilder {
     * {@link ResultBuilder} hasn't been set.
     * </ul>
     */
-   public static CommandBuilder parse(@NonNull String str) {
+   public static CommandCompiler parse(@NonNull String str) {
       List<String> tokens = new ArrayList<String>();
       ProcessBuilder builder = new ProcessBuilder(tokens);
 
@@ -108,7 +114,7 @@ public final class CommandBuilder {
          tokens.add(str.substring(tokenStart));
       }
 
-      return new CommandBuilder(builder, arguments);
+      return new CommandCompiler(builder, arguments);
    }
 
    /**
@@ -166,38 +172,55 @@ public final class CommandBuilder {
       }
    }
 
-   private CommandBuilder(@NonNull ProcessBuilder builder, @NonNull List<Argument> arguments) {
+   private CommandCompiler(@NonNull ProcessBuilder builder, @NonNull List<Argument> arguments) {
       this.builder = builder;
       this.arguments = arguments;
    }
 
    @NonNull
-   public CommandBuilder timeout(long timeout) {
+   public CommandCompiler timeout(long timeout) {
       this.timeout = timeout;
       return this;
    }
 
    @NonNull
-   public CommandBuilder workingDirectory(@CheckForNull File workingDirectory) {
+   public CommandCompiler normalTermination(int normalTermination) {
+      this.normalTermination = normalTermination;
+      return this;
+   }
+
+   @NonNull
+   public CommandCompiler workingDirectory(@CheckForNull File workingDirectory) {
       builder.directory(workingDirectory);
       return this;
    }
 
    @NonNull
-   public CommandBuilder redirectErrorStream(boolean redirect) {
+   public CommandCompiler redirectErrorStream(boolean redirect) {
       builder.redirectErrorStream(redirect);
       return this;
    }
 
    @NonNull
-   public CommandBuilder environment(@NonNull Map<String, String> environment) {
+   public CommandCompiler environment(@NonNull Map<String, String> environment) {
       builder.environment().putAll(environment);
       return this;
    }
 
    @NonNull
-   public <T> T build(Class<? extends T> type, @CheckForNull ResultBuilderFactory<?> resultFactory,
-            @CheckForNull ErrorBuilderFactory<?> errorFactory) {
+   public CommandCompiler resultBuilderFactory(@NonNull ResultBuilderFactory<?> resultBuilderFactory) {
+      this.resultBuilderFactory = resultBuilderFactory;
+      return this;
+   }
+
+   @NonNull
+   public CommandCompiler errorBuilderFactory(@NonNull ErrorBuilderFactory<?> errorBuilderFactory) {
+      this.errorBuilderFactory = errorBuilderFactory;
+      return this;
+   }
+
+   @NonNull
+   public <T> T compile(Class<? extends T> type) {
       if (!type.isInterface()) {
          throw new IllegalArgumentException("Type must be an interface");
       }
@@ -206,7 +229,7 @@ public final class CommandBuilder {
       }
 
       InvocationHandler handler = new ProcessInvocationHandler(type.getMethods()[0], timeout,
-               resultFactory, errorFactory, builder, arguments);
+               normalTermination, resultBuilderFactory, errorBuilderFactory, builder, arguments);
 
       return type.cast(newProxyInstance(type.getClassLoader(), new Class[] { type }, handler));
 

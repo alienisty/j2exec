@@ -4,6 +4,7 @@ import static java.util.concurrent.Executors.newCachedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.concurrent.ExecutorService;
@@ -59,8 +60,8 @@ final class Controller {
       done(process);
    }
 
-   static void start(@NonNull OutputPump pump) {
-      processors.execute(pump);
+   static void pump(@NonNull InputStream input, @NonNull OutputProcessor processor) {
+      processors.execute(new OutputPump(input, processor));
    }
 
    private static final class ShutdownHook extends Thread {

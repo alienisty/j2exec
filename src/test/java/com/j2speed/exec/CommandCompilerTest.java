@@ -1,6 +1,6 @@
 package com.j2speed.exec;
 
-import static com.j2speed.exec.CommandBuilder.parse;
+import static com.j2speed.exec.CommandCompiler.parse;
 import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayOutputStream;
@@ -8,25 +8,39 @@ import java.io.File;
 
 import org.junit.Test;
 
-import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
-public class CommandBuilderTest {
+public class CommandCompilerTest {
+
+   @Test(expected = IllegalArgumentException.class)
+   public void testCompileNotAnInterface() {
+      class NotAnInterface {
+      }
+      parse("anything").compile(NotAnInterface.class);
+   }
+
+   @Test(expected = IllegalArgumentException.class)
+   public void testCompileTooManyMethods() {
+      parse("anything").compile(TooManyMethods.class);
+   }
+
    @Test
-   @SuppressWarnings("NP")
-   public void testBuildNoParametersAlternative() {
-      JavaVersion java = parse("java -version").redirectErrorStream(true).build(JavaVersion.class,
-               new Result(), null);
+   public void testCompileNoParameters() {
+      Nothing nothing = parse("java -cp bin com.j2speed.exec.Concatenate")
+               .redirectErrorStream(true).resultBuilderFactory(new Result()).compile(Nothing.class);
 
-      System.out.println(java.version());
+      String actual = nothing.run();
+      assertEquals(Concatenate.NOTHING, actual);
    }
 
    @Test
    public void testCommandWithParameterAndResult() {
       Concat concatenate = parse("java -cp bin com.j2speed.exec.Concatenate {?} {?}")
-               .workingDirectory(new File(".")).build(Concat.class, new Result(), null);
+               .workingDirectory(new File(".")).resultBuilderFactory(new Result())
+               .compile(Concat.class);
       String prefix = "prefix";
       String postfix = "postfix";
-      String actual = concatenate.concat(prefix, postfix);
+      String actual = concatenate.run(prefix, postfix);
 
       assertEquals(prefix + postfix, actual);
    }
@@ -34,10 +48,11 @@ public class CommandBuilderTest {
    @Test
    public void testCommandWithEscaping() {
       Concat concatenate = parse("java -cp bin com.j2speed.exec.Concatenate \\{?} {?} {?}")
-               .workingDirectory(new File(".")).build(Concat.class, new Result(), null);
+               .workingDirectory(new File(".")).resultBuilderFactory(new Result())
+               .compile(Concat.class);
       String prefix = "prefix";
       String postfix = "postfix";
-      String actual = concatenate.concat(prefix, postfix);
+      String actual = concatenate.run(prefix, postfix);
 
       assertEquals("{?}" + prefix + postfix, actual);
    }
@@ -45,20 +60,27 @@ public class CommandBuilderTest {
    @Test
    public void testCommandWithQouting() {
       Concat concatenate = parse("java -cp bin com.j2speed.exec.Concatenate \" {?} \" {?}")
-               .workingDirectory(new File(".")).build(Concat.class, new Result(), null);
+               .workingDirectory(new File(".")).resultBuilderFactory(new Result())
+               .compile(Concat.class);
       String prefix = "prefix";
       String postfix = "postfix";
-      String actual = concatenate.concat(prefix, postfix);
+      String actual = concatenate.run(prefix, postfix);
 
       assertEquals("\" " + prefix + " \"" + postfix, actual);
    }
 
-   interface JavaVersion {
-      String version();
+   interface Nothing {
+      String run();
    }
 
    interface Concat {
-      String concat(String prefix, String postfix);
+      String run(@NonNull String prefix, @NonNull String postfix);
+   }
+
+   interface TooManyMethods {
+      void method1();
+
+      void method2();
    }
 
    private static class Result extends AbstractResultBuilderFactory<String> {

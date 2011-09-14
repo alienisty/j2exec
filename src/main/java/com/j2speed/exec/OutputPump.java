@@ -15,14 +15,17 @@ public class OutputPump implements Runnable {
 
    @Override
    public void run() {
+      try {
+         pump(input, processor);
+      } catch (IOException e) {
+      }
+   }
+
+   public static void pump(InputStream input, OutputProcessor processor) throws IOException {
       int read;
       byte[] buffer = new byte[4096];
-      try {
-         while ((read = input.read(buffer)) != -1) {
-            processor.process(buffer, read);
-         }
-      } catch (IOException e) {
-         return;
+      while ((read = input.read(buffer)) != -1) {
+         processor.process(buffer, read);
       }
    }
 
