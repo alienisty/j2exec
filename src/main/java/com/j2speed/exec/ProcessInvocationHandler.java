@@ -115,15 +115,6 @@ public final class ProcessInvocationHandler implements InvocationHandler {
          process = builder.start();
       }
 
-      final OutputProcessor processor;
-      if (resultBuilderFactory != null) {
-         processor = resultBuilderFactory.create();
-      } else if (args.length > arguments.length) {
-         processor = (OutputProcessor) args[arguments.length];
-      } else {
-         processor = OutputProcessor.SINK;
-      }
-
       register(process, timeout);
 
       final ErrorBuilder<? extends Throwable> error;
@@ -138,15 +129,7 @@ public final class ProcessInvocationHandler implements InvocationHandler {
          error = null;
       }
 
-      try {
-         OutputPump.pump(process.getInputStream(), processor);
-      } catch (Throwable th) {
-         process.destroy();
-      } finally {
-         done(process);
-      }
-
-      process.waitFor();
+      final OutputProcessor processor = processOutput(args, process);
 
       if (process.exitValue() != normalTermination) {
          throw processError(error);
@@ -157,6 +140,30 @@ public final class ProcessInvocationHandler implements InvocationHandler {
       }
 
       return null;
+   }
+
+   private OutputProcessor processOutput(Object[] args, Process process)
+            throws InterruptedException {
+
+      final OutputProcessor processor;
+      if (resultBuilderFactory != null) {
+         processor = resultBuilderFactory.create();
+      } else if (args != null && args.length > arguments.length) {
+         processor = (OutputProcessor) args[arguments.length];
+      } else {
+         processor = OutputProcessor.SINK;
+      }
+
+      try {
+         OutputPump.pump(process.getInputStream(), processor);
+      } catch (Throwable th) {
+         process.destroy();
+      } finally {
+         done(process);
+      }
+
+      process.waitFor();
+      return processor;
    }
 
    @NonNull

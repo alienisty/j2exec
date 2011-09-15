@@ -15,7 +15,7 @@ final class Watchdog implements Runnable {
    public void run() {
       try {
          process.exitValue();
-      } catch (IllegalStateException e) {
+      } catch (IllegalThreadStateException e) {
          // process not done yet, must be destroyed
          kill(process);
       }

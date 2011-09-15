@@ -177,6 +177,10 @@ public final class CommandCompiler {
       this.arguments = arguments;
    }
 
+   /**
+    * @param timeout in milliseconds
+    * @return
+    */
    @NonNull
    public CommandCompiler timeout(long timeout) {
       this.timeout = timeout;
