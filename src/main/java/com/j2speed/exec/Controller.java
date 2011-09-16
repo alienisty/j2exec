@@ -16,9 +16,9 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 
 final class Controller {
 
-   private static final ExecutorService processors;
+   private static final ExecutorService PROCESSOR;
 
-   private static final ScheduledExecutorService watchdog;
+   private static final ScheduledExecutorService SCHEDULER;
 
    @GuardedBy("running")
    private static final Collection<Process> running = new HashSet<Process>();
@@ -27,21 +27,24 @@ final class Controller {
    private static boolean active = true;
 
    static {
-      processors = newCachedThreadPool(new NamedFactory("output-processor"));
-      watchdog = newSingleThreadScheduledExecutor(new NamedFactory("watchdog"));
+      PROCESSOR = newCachedThreadPool(new NamedFactory("output-processor"));
+      SCHEDULER = newSingleThreadScheduledExecutor(new NamedFactory("watchdog"));
       Runtime.getRuntime().addShutdownHook(new ShutdownHook());
    }
 
    private Controller() {
    }
 
-   static void register(@NonNull Process process, long timeout) {
+   @NonNull
+   static Watchdog register(@NonNull Process process, long timeout) {
       synchronized (running) {
          if (active) {
+            final Watchdog watchdog = new Watchdog(process);
             if (timeout > 0) {
-               watchdog.schedule(new Watchdog(process), timeout, MILLISECONDS);
+               watchdog.setFuture(SCHEDULER.schedule(watchdog, timeout, MILLISECONDS));
             }
             running.add(process);
+            return watchdog;
          } else {
             process.destroy();
             throw new ExecutionException("shutting down");
@@ -61,7 +64,7 @@ final class Controller {
    }
 
    static void pump(@NonNull InputStream input, @NonNull OutputProcessor processor) {
-      processors.execute(new OutputPump(input, processor));
+      PROCESSOR.execute(new OutputPump(input, processor));
    }
 
    private static final class ShutdownHook extends Thread {

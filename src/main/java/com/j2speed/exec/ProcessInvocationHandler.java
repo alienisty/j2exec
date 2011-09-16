@@ -115,7 +115,7 @@ public final class ProcessInvocationHandler implements InvocationHandler {
          process = builder.start();
       }
 
-      register(process, timeout);
+      final Watchdog watchdog = register(process, timeout);
 
       final ErrorBuilder<? extends Throwable> error;
       if (!builder.redirectErrorStream()) {
@@ -129,29 +129,30 @@ public final class ProcessInvocationHandler implements InvocationHandler {
          error = null;
       }
 
-      final OutputProcessor processor = processOutput(args, process);
-
+      final ResultBuilder<?> result = processOutput(args, process);
+      
+      watchdog.cancel();
+      
       if (process.exitValue() != normalTermination) {
          throw processError(error);
       }
 
-      if (resultBuilderFactory != null) {
-         return ((ResultBuilder<?>) processor).build();
-      }
-
-      return null;
+      return result.build();
    }
 
-   private OutputProcessor processOutput(Object[] args, Process process)
+   private ResultBuilder<?> processOutput(Object[] args, Process process)
             throws InterruptedException {
 
       final OutputProcessor processor;
+      final ResultBuilder<?> result;
       if (resultBuilderFactory != null) {
-         processor = resultBuilderFactory.create();
+         processor = result = resultBuilderFactory.create();
       } else if (args != null && args.length > arguments.length) {
          processor = (OutputProcessor) args[arguments.length];
+         result = ResultBuilder.VOID;
       } else {
          processor = OutputProcessor.SINK;
+         result = ResultBuilder.VOID;
       }
 
       try {
@@ -163,7 +164,8 @@ public final class ProcessInvocationHandler implements InvocationHandler {
       }
 
       process.waitFor();
-      return processor;
+
+      return result;
    }
 
    @NonNull

@@ -53,7 +53,7 @@ public class InvocationTest {
       assertEquals("\" " + PREFIX + " \"" + POSTFIX, actual);
    }
 
-   @Test(expected = ExecutionException.class)
+   @Test(expected = TimeoutException.class)
    public void testCommandTimeout() {
       ForEver forEver = parse(FOREVER).timeout(500).compile(ForEver.class);
       forEver.doNothing();
