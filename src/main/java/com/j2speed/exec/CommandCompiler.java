@@ -3,9 +3,14 @@ package com.j2speed.exec;
 import static java.lang.reflect.Proxy.newProxyInstance;
 
 import java.io.File;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -117,51 +122,10 @@ public final class CommandCompiler {
       return new CommandCompiler(builder, arguments);
    }
 
-   /**
-    * TODO Parse strings with the following format:
-    * 
-    * <pre>
-    *    <cmd> ([<option>]['{?}'])*
-    * </pre>
-    * 
-    * The string "{?}" is a binding parameter, similarly to the one found in JDBC. Like in JDBC they
-    * are positional, so the first maps to the first parameter in the interface method, the second
-    * to the second and so on.
-    * 
-    * TODO example
-    * 
-    * Note allowed format for the interface:
-    * <ul>
-    * <li>must be a closure (single method)
-    * <li>parameters mapping to arguments must be at the beginning (in order of mapping)
-    * <li>OutputProcessors must be last parameters
-    * <li>You can only have either an OutputProcessor or a ResultBuilder and/or an ErrorBuilder.
-    * </ul>
-    * 
-    * @param call
-    * @param type
-    * @return
-    */
-
-   /**
-    * Sets the working directory for the managed command proxied through the specified object built
-    * using the {@link #build(String, Class, File, Map)} method.
-    * 
-    * @param command
-    * @param workingDir
-    */
-   public static void setWorkingDir(@NonNull Object command, @CheckForNull File workingDir) {
-      invocationHandler(command).setWorkingDirectory(workingDir);
-   }
-
-   public static void setRedirectError(@NonNull Object command, boolean redirect) {
-      invocationHandler(command).setRedirectErrorStream(redirect);
-   }
-
-   private static ProcessInvocationHandler invocationHandler(@NonNull Object command) {
+   private static SingleCommandInvocationHandler invocationHandler(@NonNull Object command) {
       final InvocationHandler invocationHandler = Proxy.getInvocationHandler(command);
-      if (invocationHandler instanceof ProcessInvocationHandler) {
-         return (ProcessInvocationHandler) invocationHandler;
+      if (invocationHandler instanceof SingleCommandInvocationHandler) {
+         return (SingleCommandInvocationHandler) invocationHandler;
       }
       throw new IllegalArgumentException("Not a managed command");
    }
@@ -178,7 +142,8 @@ public final class CommandCompiler {
    }
 
    /**
-    * @param timeout in milliseconds
+    * @param timeout
+    *           in milliseconds
     * @return
     */
    @NonNull
@@ -223,6 +188,14 @@ public final class CommandCompiler {
       return this;
    }
 
+   public static <T> CompilingProxy<T> with(Class<? extends T> type) {
+      return null;
+   }
+
+   public static <T> CompilingProxy<T> with(T proxy) {
+      return null;
+   }
+
    @NonNull
    public <T> T compile(Class<? extends T> type) {
       if (!type.isInterface()) {
@@ -232,10 +205,243 @@ public final class CommandCompiler {
          throw new IllegalArgumentException("The interface must define only one method");
       }
 
-      InvocationHandler handler = new ProcessInvocationHandler(type.getMethods()[0], timeout,
+      InvocationHandler handler = new SingleCommandInvocationHandler(type.getMethods()[0], timeout,
                normalTermination, resultBuilderFactory, errorBuilderFactory, builder, arguments);
 
       return type.cast(newProxyInstance(type.getClassLoader(), new Class[] { type }, handler));
 
+   }
+
+   private static abstract class Compiler<T> {
+
+      private int normalTermination;
+
+      private boolean redirectError;
+      @CheckForNull
+      private ResultBuilderFactory<?> resultFactory;
+      @CheckForNull
+      private ErrorBuilderFactory<?> errorFactory;
+      @CheckForNull
+      private File workingDirectory;
+      @CheckForNull
+      private Map<String, String> environment;
+
+      public abstract Compiler<T> on(String methodName);
+
+      /**
+       * @return a new instance for the invocation proxy, whether the compilation starts from an
+       *         existing one or not.
+       */
+      @NonNull
+      public abstract T compile();
+
+      /**
+       * Re-compile and re-use the invocation proxy passed at the beginning of the chain.
+       * 
+       * @throws IllegalStateException
+       *            if the compilation does not start from an existing invocation proxy.
+       */
+      public abstract void swap();
+
+      /**
+       * Sets the working directory for the managed command.
+       * 
+       * @param workingDir
+       */
+      @NonNull
+      public Compiler<T> use(@CheckForNull File workingDir) {
+         this.workingDirectory = workingDir;
+         return this;
+      }
+
+      /**
+       * Sets the environment for the managed command.
+       * <p>
+       * Note that this values override the current system's environment.
+       * 
+       * @param environment
+       * @return
+       */
+      public Compiler<T> use(@CheckForNull Map<String, String> environment) {
+         this.environment = environment;
+         return this;
+      }
+
+      private void parseAnnotations(@NonNull AnnotatedElement element) {
+         redirectError = false;
+         resultFactory = null;
+         errorFactory = null;
+         for (Annotation annotation : element.getAnnotations()) {
+            Class<? extends Annotation> annotationType = annotation.annotationType();
+            if (annotationType == RedirectError.class) {
+               redirectError = true;
+            } else if (annotationType == ResultFactory.class) {
+               resultFactory = createFactory(((ResultFactory) annotation).value());
+            } else if (annotationType == ErrorFactory.class) {
+               errorFactory = createFactory(((ErrorFactory) annotation).value());
+            } else if (annotationType == NormalTermination.class) {
+               normalTermination = parse((NormalTermination) annotation);
+            }
+         }
+      }
+
+      private int parse(NormalTermination normalTermination) {
+         Class<?> parser = normalTermination.parser();
+         if (parser == Integer.class) {
+            return Integer.parseInt(normalTermination.value());
+         }
+         try {
+            try {
+               return (Integer) parser.getMethod("parseInt", String.class).invoke(parser,
+                        normalTermination.value());
+            } catch (InvocationTargetException e) {
+               throw e.getTargetException();
+            }
+         } catch (RuntimeException e) {
+            throw e;
+         } catch (Error e) {
+            throw e;
+         } catch (Throwable th) {
+            throw new RuntimeException(th);
+         }
+      }
+
+      private static <T> T createFactory(@NonNull Class<? extends T> type) {
+         try {
+            return type.newInstance();
+         } catch (InstantiationException e) {
+            throw new RuntimeException(e);
+         } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+         }
+      }
+   }
+
+   public static class CompilingProxy<T> extends Compiler<T> {
+      @CheckForNull
+      private T proxy;
+      @NonNull
+      private Class<?> type;
+      @NonNull
+      private Map<Method, CompilingMethod<?>> methodCompilers = new HashMap<Method, CompilingMethod<?>>();
+
+      private CompilingProxy(T proxy) {
+         if (!Proxy.isProxyClass(proxy.getClass())) {
+            throw new IllegalArgumentException("Object of " + proxy.getClass() + " is not a proxy");
+         }
+         // TODO is proxy a managed commands proxy? (should check using the invocation handler
+         // type?)
+
+         Class<?>[] interfaces = proxy.getClass().getInterfaces();
+         if (interfaces == null || interfaces.length > 1) {
+            throw new IllegalArgumentException("Invalid proxy format, wrong number of interfaces "
+                     + (interfaces == null ? 0 : interfaces.length));
+         }
+
+         this.type = interfaces[0];
+         super.parseAnnotations(type);
+      }
+
+      private CompilingProxy(@NonNull Class<? extends T> type) {
+         super.parseAnnotations(type);
+         this.type = type;
+      }
+
+      @Override
+      public CompilingMethod<T> on(String methodName) {
+         return new CompilingMethod<T>(this, methodName);
+      }
+
+      @Override
+      public final CompilingProxy<T> use(File workingDir) {
+         super.use(workingDir);
+         return this;
+      }
+
+      private void setMethodCompiler(CompilingMethod<?> compiler) {
+         methodCompilers.put(compiler.method, compiler);
+      }
+
+      @Override
+      public T compile() {
+         if (super.redirectError) {
+
+         }
+         // TODO Auto-generated method stub
+         return null;
+      }
+
+      @Override
+      public void swap() {
+         if (proxy == null) {
+
+         }
+         // TODO Auto-generated method stub
+
+      }
+   }
+
+   public static class CompilingMethod<T> extends Compiler<T> {
+      private CompilingProxy<T> compiler;
+
+      private String name;
+      private Method method;
+      private String command;
+
+      private CompilingMethod(@NonNull CompilingProxy<T> compiler, @NonNull String name) {
+         this.compiler = compiler;
+         this.name = name;
+         try {
+            parseMethod(name);
+         } catch (NoSuchMethodException e) {
+            // there is no no-args method
+         }
+      }
+
+      private void parseMethod(@NonNull String name, Class<?>... parameters)
+               throws NoSuchMethodException {
+         this.method = compiler.type.getMethod(name);
+         parseAnnotations(method);
+         compiler.setMethodCompiler(this);
+      }
+
+      private void parseAnnotations(Method method) {
+         super.parseAnnotations(method);
+         command = ((Command) method.getAnnotation(Command.class)).value();
+      }
+
+      public CompilingMethod<T> withParameters(Class<?>... parameters) throws NoSuchMethodException {
+         // need to override the default one because this call means that the no-args method is not
+         // what is wanted here.
+         method = null;
+         parseMethod(name, parameters);
+         return this;
+      }
+
+      @Override
+      public final CompilingMethod<T> on(String methodName) {
+         return new CompilingMethod<T>(compiler, methodName);
+      }
+
+      @Override
+      public CompilingMethod<T> use(File workingDir) {
+         super.use(workingDir);
+         return this;
+      }
+
+      @Override
+      public final T compile() {
+         return compiler.compile();
+      }
+
+      @Override
+      public final void swap() {
+         compiler.swap();
+      }
+
+      private SingleCommandInvocationHandler newHandler() {
+
+         return null;
+      }
    }
 }

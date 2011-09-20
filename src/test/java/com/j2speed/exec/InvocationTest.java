@@ -1,6 +1,6 @@
 package com.j2speed.exec;
 
-import static com.j2speed.exec.CommandCompiler.parse;
+import static com.j2speed.exec.CommandCompiler.*;
 import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayOutputStream;
@@ -19,6 +19,14 @@ public class InvocationTest {
 
    @Test
    public void testCommandWithNoParameters() {
+      Nothing nothing = with(Nothing.class).use(new File(".")).compile();
+
+      String actual = nothing.run();
+      assertEquals(Concatenate.NOTHING, actual);
+   }
+
+   @Test
+   public void testCommandWithNoParametersNew() {
       Nothing nothing = parse(CONCATENATE).redirectErrorStream(true)
                .resultBuilderFactory(new Result()).compile(Nothing.class);
 
@@ -59,7 +67,10 @@ public class InvocationTest {
       forEver.doNothing();
    }
 
+   @RedirectError
+   @ResultFactory(Result.class)
    interface Nothing {
+      @Command(CONCATENATE)
       String run();
    }
 

@@ -21,7 +21,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * 
  * @author Alessandro Nistico
  */
-public final class ProcessInvocationHandler implements InvocationHandler {
+public final class SingleCommandInvocationHandler implements InvocationHandler {
 
    private final int normalTermination;
    @NonNull
@@ -35,7 +35,7 @@ public final class ProcessInvocationHandler implements InvocationHandler {
 
    private long timeout;
 
-   public ProcessInvocationHandler(@NonNull Method method, long timeout, int normalTermination,
+   public SingleCommandInvocationHandler(@NonNull Method method, long timeout, int normalTermination,
             @CheckForNull ResultBuilderFactory<?> resultBuilderFactory,
             @CheckForNull ErrorBuilderFactory<?> errorBuilderFactory,
             @NonNull ProcessBuilder builder, @NonNull List<Argument> arguments) {
