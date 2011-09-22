@@ -214,17 +214,19 @@ public final class CommandCompiler {
 
    private static abstract class Compiler<T> {
 
-      private int normalTermination;
-
-      private boolean redirectError;
+      boolean redirectError;
       @CheckForNull
-      private ResultBuilderFactory<?> resultFactory;
+      long timeout;
       @CheckForNull
-      private ErrorBuilderFactory<?> errorFactory;
+      int normalTermination;
       @CheckForNull
-      private File workingDirectory;
+      ResultBuilderFactory<?> resultFactory;
       @CheckForNull
-      private Map<String, String> environment;
+      ErrorBuilderFactory<?> errorFactory;
+      @CheckForNull
+      File workingDirectory;
+      @CheckForNull
+      Map<String, String> environment;
 
       public abstract Compiler<T> on(String methodName);
 
@@ -321,7 +323,7 @@ public final class CommandCompiler {
       @CheckForNull
       private T proxy;
       @NonNull
-      private Class<?> type;
+      private Class<? extends T> type;
       @NonNull
       private Map<Method, CompilingMethod<?>> methodCompilers = new HashMap<Method, CompilingMethod<?>>();
 
@@ -338,7 +340,7 @@ public final class CommandCompiler {
                      + (interfaces == null ? 0 : interfaces.length));
          }
 
-         this.type = interfaces[0];
+         this.type = (Class<? extends T>) interfaces[0];
          super.parseAnnotations(type);
       }
 
@@ -364,11 +366,19 @@ public final class CommandCompiler {
 
       @Override
       public T compile() {
-         if (super.redirectError) {
-
+         InvocationHandler handler = null;
+         if (methodCompilers.size() > 1) {
+            MultiCommandInvocationHanlder multiHandler = new MultiCommandInvocationHanlder();
+            for (CompilingMethod<?> methodCompiler : methodCompilers.values()) {
+               multiHandler.add(methodCompiler.method, methodCompiler.newHandler());
+            }
+            handler = multiHandler;
+         } else {
+            for (CompilingMethod<?> methodCompiler : methodCompilers.values()) {
+               handler = methodCompiler.newHandler();
+            }
          }
-         // TODO Auto-generated method stub
-         return null;
+         return type.cast(newProxyInstance(type.getClassLoader(), new Class[] { type }, handler));
       }
 
       @Override
@@ -440,8 +450,78 @@ public final class CommandCompiler {
       }
 
       private SingleCommandInvocationHandler newHandler() {
+         ProcessBuilder builder = new ProcessBuilder(new ArrayList<String>());
+         List<Argument> arguments = new LinkedList<Argument>();
 
-         return null;
+         return newHandler(builder, arguments);
+      }
+
+      private SingleCommandInvocationHandler newHandler(ProcessBuilder builder,
+               List<Argument> arguments) {
+         List<String> tokens = builder.command();
+
+         boolean quoting = false;
+         int tokenStart = 0;
+         String prefix = null;
+         int index = -1;
+
+         parsing: for (int cIdx = 0, strLength = command.length(); cIdx < strLength;) {
+
+            final char ch = command.charAt(cIdx++);
+            switch (ch) {
+            case ' ':
+               if (!quoting) {
+                  if (prefix != null) {
+                     // argument found
+                     arguments.add(new Argument(prefix, command.substring(tokenStart, cIdx - 1),
+                              index));
+                  } else if ((cIdx - tokenStart) > 1) {
+                     tokens.add(command.substring(tokenStart, cIdx - 1));
+                  }
+                  prefix = null;
+                  tokenStart = cIdx;
+               }
+               continue parsing;
+
+            case '\\': // escaping
+               if (tokenStart == (cIdx - 1)) {
+                  tokenStart = cIdx;
+               }
+               cIdx++; // do not parse next char
+               continue parsing;
+
+            case '"':
+               quoting = quoting ^ true; // toggle quoting
+               continue parsing;
+
+            case '{':
+               prefix = command.substring(tokenStart, cIdx - 1);
+               checkCharacterIs('?', cIdx++, command);
+               checkCharacterIs('}', cIdx++, command);
+               index = tokens.size();
+               tokens.add("");
+               tokenStart = cIdx;
+               continue parsing;
+            }
+
+         }
+
+         if (prefix != null) {
+            arguments.add(new Argument(prefix, command.substring(tokenStart), index));
+         } else if (tokenStart < command.length()) {
+            tokens.add(command.substring(tokenStart));
+         }
+
+         long timeout = this.timeout > 0 ? this.timeout : compiler.timeout;
+         int normalTermination = this.normalTermination != 0 ? this.normalTermination
+                  : compiler.normalTermination;
+         ResultBuilderFactory<?> resultFactory = this.resultFactory != null ? this.resultFactory
+                  : compiler.resultFactory;
+         ErrorBuilderFactory<?> errorFactory = this.errorFactory != null ? this.errorFactory
+                  : compiler.errorFactory;
+
+         return new SingleCommandInvocationHandler(method, timeout, normalTermination,
+                  resultFactory, errorFactory, builder, arguments);
       }
    }
 }
