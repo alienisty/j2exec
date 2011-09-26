@@ -3,6 +3,7 @@ package com.j2speed.exec;
 import java.io.ByteArrayOutputStream;
 
 public class DefaultErrorBuilder implements ErrorBuilder<ExecutionException> {
+   
    private final ByteArrayOutputStream builder = new ByteArrayOutputStream();
 
    @Override

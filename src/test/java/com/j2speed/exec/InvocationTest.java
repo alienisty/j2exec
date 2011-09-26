@@ -1,10 +1,9 @@
 package com.j2speed.exec;
 
-import static com.j2speed.exec.CommandCompiler.*;
+import static com.j2speed.exec.Compiler.using;
 import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 
 import org.junit.Test;
 
@@ -19,25 +18,15 @@ public class InvocationTest {
 
    @Test
    public void testCommandWithNoParameters() {
-      Nothing nothing = with(Nothing.class).use(new File(".")).compile();
+      Nothing nothing = using(Nothing.class).compile();
 
-      String actual = nothing.run();
-      assertEquals(Concatenate.NOTHING, actual);
-   }
-
-   @Test
-   public void testCommandWithNoParametersNew() {
-      Nothing nothing = parse(CONCATENATE).redirectErrorStream(true)
-               .resultBuilderFactory(new Result()).compile(Nothing.class);
-
-      String actual = nothing.run();
+      String actual = nothing.toDo();
       assertEquals(Concatenate.NOTHING, actual);
    }
 
    @Test
    public void testCommandWithParameterAndResult() {
-      Concat concatenate = parse(CONCATENATE + " {?} {?}").workingDirectory(new File("."))
-               .resultBuilderFactory(new Result()).compile(Concat.class);
+      Concat concatenate = using(Concat.class).compile();
       String actual = concatenate.run(PREFIX, POSTFIX);
 
       assertEquals(PREFIX + POSTFIX, actual);
@@ -45,25 +34,24 @@ public class InvocationTest {
 
    @Test
    public void testCommandWithEscaping() {
-      Concat concatenate = parse(CONCATENATE + " \\{?} {?} {?}").workingDirectory(new File("."))
-               .resultBuilderFactory(new Result()).compile(Concat.class);
-      String actual = concatenate.run(PREFIX, POSTFIX);
+      Concat2 concatenate = using(Concat2.class).compile();
+      String actual = concatenate.concat(PREFIX, POSTFIX);
 
       assertEquals("{?}" + PREFIX + POSTFIX, actual);
    }
 
    @Test
    public void testCommandWithQouting() {
-      Concat concatenate = parse(CONCATENATE + " \" {?} \" {?}").workingDirectory(new File("."))
-               .resultBuilderFactory(new Result()).compile(Concat.class);
-      String actual = concatenate.run(PREFIX, POSTFIX);
+      Concat2 concatenate = using(Concat2.class).on("concat", String.class, String.class)
+               .run(CONCATENATE + " \" {?} \" {?}").compile();
+      String actual = concatenate.concat(PREFIX, POSTFIX);
 
       assertEquals("\" " + PREFIX + " \"" + POSTFIX, actual);
    }
 
    @Test(expected = TimeoutException.class)
    public void testCommandTimeout() {
-      ForEver forEver = parse(FOREVER).timeout(500).compile(ForEver.class);
+      ForEver forEver = using(ForEver.class).timeout(500).compile();
       forEver.doNothing();
    }
 
@@ -71,18 +59,27 @@ public class InvocationTest {
    @ResultFactory(Result.class)
    interface Nothing {
       @Command(CONCATENATE)
-      String run();
+      String toDo();
    }
 
    interface Concat {
-      String run(@NonNull String PREFIX, @NonNull String POSTFIX);
+      @Command(CONCATENATE + " {?} {?}")
+      @ResultFactory(Result.class)
+      String run(@NonNull String prefix, @NonNull String postfix);
+   }
+
+   interface Concat2 {
+      @Command(CONCATENATE + " \\{?} {?} {?}")
+      @ResultFactory(Result.class)
+      String concat(@NonNull String prefix, @NonNull String postfix);
    }
 
    interface ForEver {
+      @Command(FOREVER)
       void doNothing();
    }
 
-   private static class Result extends AbstractResultBuilderFactory<String> {
+   public static class Result extends AbstractResultBuilderFactory<String> {
       @Override
       public ResultBuilder<String> create() {
          return new ResultBuilder<String>() {

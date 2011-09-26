@@ -4,6 +4,8 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import com.j2speed.exec.impl.Argument;
+
 public class ArgumentTest {
 
    @Test

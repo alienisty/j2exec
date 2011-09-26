@@ -1,4 +1,4 @@
-package com.j2speed.exec;
+package com.j2speed.exec.impl;
 
 import static java.util.concurrent.Executors.newCachedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
@@ -11,6 +11,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 
 import javax.annotation.concurrent.GuardedBy;
+
+import com.j2speed.exec.ExecutionException;
+import com.j2speed.exec.OutputProcessor;
+
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 

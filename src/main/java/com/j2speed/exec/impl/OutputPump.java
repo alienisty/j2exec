@@ -1,7 +1,9 @@
-package com.j2speed.exec;
+package com.j2speed.exec.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
+
+import com.j2speed.exec.OutputProcessor;
 
 public class OutputPump implements Runnable {
 
@@ -28,5 +30,4 @@ public class OutputPump implements Runnable {
          processor.process(buffer, read);
       }
    }
-
 }

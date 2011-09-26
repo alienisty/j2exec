@@ -1,10 +1,13 @@
-package com.j2speed.exec;
+package com.j2speed.exec.impl;
 
-import static com.j2speed.exec.Controller.kill;
+import static com.j2speed.exec.impl.Controller.kill;
 
 import java.util.concurrent.Future;
 
 import javax.annotation.concurrent.ThreadSafe;
+
+import com.j2speed.exec.TimeoutException;
+
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -16,6 +19,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  */
 @ThreadSafe
 final class Watchdog implements Runnable {
+   
    @NonNull
    private final Process process;
    @CheckForNull

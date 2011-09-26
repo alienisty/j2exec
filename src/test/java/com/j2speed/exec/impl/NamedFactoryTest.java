@@ -1,6 +1,7 @@
-package com.j2speed.exec;
+package com.j2speed.exec.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.Executors;
 

@@ -1,9 +1,11 @@
-package com.j2speed.exec;
+package com.j2speed.exec.impl;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+
+
 
 public class MultiCommandInvocationHanlder implements InvocationHandler {
 
@@ -14,7 +16,7 @@ public class MultiCommandInvocationHanlder implements InvocationHandler {
       return handlers.get(method).invoke(proxy, method, args);
    }
 
-   void add(Method method, SingleCommandInvocationHandler handler) {
+   public void add(Method method, SingleCommandInvocationHandler handler) {
       if (method == null) {
          throw new IllegalArgumentException("Method null");
       }
