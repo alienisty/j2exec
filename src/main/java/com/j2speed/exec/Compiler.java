@@ -7,7 +7,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -23,28 +22,23 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 
 public abstract class Compiler<T> {
 
-   boolean redirectError;
+   private boolean redirectError;
    @CheckForNull
-   long timeout;
+   private long timeout;
    @CheckForNull
-   int normalTermination;
+   private int normalTermination;
    @CheckForNull
-   ResultBuilderFactory<?> resultFactory;
+   private ResultBuilderFactory<?> resultFactory;
    @CheckForNull
-   ErrorBuilderFactory<?> errorFactory;
+   private ErrorBuilderFactory<?> errorFactory;
    @CheckForNull
-   File workingDirectory;
+   private File workingDirectory;
    @CheckForNull
-   Map<String, String> environment;
+   private Map<String, String> environment;
 
    @NonNull
    public static <T> CompilingType<T> using(@NonNull Class<? extends T> type) {
       return new CompilingType<T>(type);
-   }
-
-   @NonNull
-   public static <T> CompilingType<T> with(@NonNull T proxy) {
-      return new CompilingType<T>(proxy);
    }
 
    /**
@@ -54,17 +48,31 @@ public abstract class Compiler<T> {
    @NonNull
    public abstract T compile();
 
-   /**
-    * Re-compile and re-use the invocation proxy passed at the beginning of the chain.
-    * 
-    * @throws IllegalStateException
-    *            if the compilation does not start from an existing invocation proxy.
-    */
-   public abstract void swap();
-
    public Compiler<T> timeout(long timeout) {
       this.timeout = timeout;
       return this;
+   }
+
+   protected long timeout() {
+      return timeout;
+   }
+
+   public Compiler<T> redirectError(boolean redirectError) {
+      this.redirectError = redirectError;
+      return this;
+   }
+
+   protected boolean redirectError() {
+      return redirectError;
+   }
+
+   public Compiler<T> normalTermination(int normalTermination) {
+      this.normalTermination = normalTermination;
+      return this;
+   }
+
+   protected int normalTermination() {
+      return normalTermination;
    }
 
    /**
@@ -78,6 +86,10 @@ public abstract class Compiler<T> {
       return this;
    }
 
+   protected File workingDirectory() {
+      return workingDirectory;
+   }
+
    /**
     * Sets the environment for the managed command.
     * <p>
@@ -87,12 +99,34 @@ public abstract class Compiler<T> {
     * @return
     */
    @NonNull
-   public Compiler<T> use(@CheckForNull Map<String, String> environment) {
+   public Compiler<T> environment(@CheckForNull Map<String, String> environment) {
       this.environment = environment;
       return this;
    }
 
-   protected void parseAnnotations(@NonNull AnnotatedElement element) {
+   protected Map<String, String> environment() {
+      return environment;
+   }
+
+   public Compiler<T> use(@CheckForNull ResultBuilderFactory<?> resultFactory) {
+      this.resultFactory = resultFactory;
+      return this;
+   }
+
+   protected ResultBuilderFactory<?> resultFactory() {
+      return resultFactory;
+   }
+
+   public Compiler<T> use(@CheckForNull ErrorBuilderFactory<?> errorFactory) {
+      this.errorFactory = errorFactory;
+      return this;
+   }
+
+   protected ErrorBuilderFactory<?> errorFactory() {
+      return errorFactory;
+   }
+
+   void parseAnnotations(@NonNull AnnotatedElement element) {
       redirectError = false;
       resultFactory = null;
       errorFactory = null;
@@ -122,30 +156,10 @@ public abstract class Compiler<T> {
    }
 
    public static final class CompilingType<T> extends Compiler<T> {
-      @CheckForNull
-      private T proxy;
       @NonNull
       private final Class<? extends T> type;
       @NonNull
       private Map<Method, CompilingMethod<T>> compilingMethods = new HashMap<Method, CompilingMethod<T>>();
-
-      CompilingType(@NonNull T proxy) {
-         if (!Proxy.isProxyClass(proxy.getClass())) {
-            throw new IllegalArgumentException("Object of " + proxy.getClass() + " is not a proxy");
-         }
-         // TODO is proxy a managed commands proxy? (should check using the invocation handler
-         // type?)
-
-         Class<?>[] interfaces = proxy.getClass().getInterfaces();
-         if (interfaces == null || interfaces.length > 1) {
-            throw new IllegalArgumentException("Invalid proxy format, wrong number of interfaces "
-                     + (interfaces == null ? 0 : interfaces.length));
-         }
-         this.proxy = proxy;
-         @SuppressWarnings("unchecked")
-         Class<? extends T> type = (Class<? extends T>) interfaces[0];
-         this.type = parseType(type);
-      }
 
       CompilingType(@NonNull Class<? extends T> type) {
          this.type = parseType(type);
@@ -178,8 +192,44 @@ public abstract class Compiler<T> {
       }
 
       @Override
+      public CompilingType<T> timeout(long timeout) {
+         super.timeout(timeout);
+         return this;
+      }
+
+      @Override
+      public CompilingType<T> redirectError(boolean redirectError) {
+         super.redirectError(redirectError);
+         return this;
+      }
+
+      @Override
+      public CompilingType<T> normalTermination(int normalTermination) {
+         super.normalTermination(normalTermination);
+         return this;
+      }
+
+      @Override
       public CompilingType<T> workIn(File workingDir) {
          super.workIn(workingDir);
+         return this;
+      }
+
+      @Override
+      public CompilingType<T> environment(Map<String, String> environment) {
+         super.environment(environment);
+         return this;
+      }
+
+      @Override
+      public CompilingType<T> use(ResultBuilderFactory<?> resultFactory) {
+         super.use(resultFactory);
+         return this;
+      }
+
+      @Override
+      public CompilingType<T> use(ErrorBuilderFactory<?> errorFactory) {
+         super.use(errorFactory);
          return this;
       }
 
@@ -199,15 +249,6 @@ public abstract class Compiler<T> {
          }
          return type.cast(newProxyInstance(type.getClassLoader(), new Class[] { type }, handler));
       }
-
-      @Override
-      @edu.umd.cs.findbugs.annotations.SuppressWarnings()
-      public void swap() {
-         if (proxy == null) {
-            throw new IllegalStateException();
-         }
-         throw new UnsupportedOperationException();
-      }
    }
 
    public static final class CompilingMethod<T> extends Compiler<T> {
@@ -222,14 +263,17 @@ public abstract class Compiler<T> {
          parseAnnotations(method);
       }
 
-      protected void parseAnnotations(Method method) {
+      void parseAnnotations(Method method) {
          super.parseAnnotations(method);
-         command = ((Command) method.getAnnotation(Command.class)).value();
+         final Command command = (Command) method.getAnnotation(Command.class);
+         if (command != null) {
+            this.command = command.value().trim();
+         }
       }
 
       @NonNull
-      public CompilingMethod<T> run(String command) {
-         this.command = command;
+      public CompilingMethod<T> run(@NonNull String command) {
+         this.command = command.trim();
          return this;
       }
 
@@ -239,9 +283,69 @@ public abstract class Compiler<T> {
       }
 
       @Override
+      protected long timeout() {
+         if (super.timeout() > 0)
+            return super.timeout();
+         else
+            return global.timeout();
+      }
+
+      @Override
+      protected int normalTermination() {
+         if (super.normalTermination() != 0)
+            return super.normalTermination();
+         else
+            return global.normalTermination();
+      }
+
+      @Override
+      protected boolean redirectError() {
+         if (super.redirectError())
+            return super.redirectError();
+         else
+            return global.redirectError();
+      }
+
+      @Override
       public CompilingMethod<T> workIn(File workingDir) {
          super.workIn(workingDir);
          return this;
+      }
+
+      @Override
+      protected File workingDirectory() {
+         if (super.workingDirectory() != null)
+            return super.workingDirectory();
+         else
+            return global.workingDirectory();
+      }
+
+      @Override
+      public CompilingMethod<T> use(ResultBuilderFactory<?> resultFactory) {
+         super.use(resultFactory);
+         return this;
+      }
+
+      @Override
+      protected ResultBuilderFactory<?> resultFactory() {
+         if (super.resultFactory() != null)
+            return super.resultFactory();
+         else
+            return global.resultFactory();
+      }
+
+      @Override
+      public CompilingMethod<T> use(ErrorBuilderFactory<?> errorFactory) {
+         super.use(errorFactory);
+         return this;
+      }
+
+      @Override
+      protected ErrorBuilderFactory<?> errorFactory() {
+         if (super.errorFactory() != null)
+            return super.errorFactory();
+         else
+            return global.errorFactory();
       }
 
       @Override
@@ -249,12 +353,10 @@ public abstract class Compiler<T> {
          return global.compile();
       }
 
-      @Override
-      public void swap() {
-         global.swap();
-      }
-
       private SingleCommandInvocationHandler newHandler() {
+         if (command == null || command.isEmpty()) {
+            throw new IllegalStateException("No command specified for method " + method);
+         }
          ProcessBuilder builder = new ProcessBuilder(new ArrayList<String>());
          List<Argument> arguments = new LinkedList<Argument>();
 
@@ -317,29 +419,19 @@ public abstract class Compiler<T> {
             tokens.add(command.substring(tokenStart));
          }
 
-         long timeout = this.timeout > 0 ? this.timeout : global.timeout;
-         int normalTermination = this.normalTermination != 0 ? this.normalTermination
-                  : global.normalTermination;
-         ResultBuilderFactory<?> resultFactory = this.resultFactory != null ? this.resultFactory
-                  : global.resultFactory;
-         ErrorBuilderFactory<?> errorFactory = this.errorFactory != null ? this.errorFactory
-                  : global.errorFactory;
-         File workingDir = workingDirectory != null ? workingDirectory : global.workingDirectory;
-         if (workingDir != null) {
-            builder.directory(workingDir);
-         }
-         boolean redirect = redirectError ? redirectError : global.redirectError;
-         builder.redirectErrorStream(redirect);
+         builder.directory(workingDirectory());
 
-         if (global.environment != null && !global.environment.isEmpty()) {
-            builder.environment().putAll(global.environment);
+         builder.redirectErrorStream(redirectError());
+
+         if (global.environment() != null && !global.environment().isEmpty()) {
+            builder.environment().putAll(global.environment());
          }
-         if (environment != null && !environment.isEmpty()) {
-            builder.environment().putAll(environment);
+         if (environment() != null && !environment().isEmpty()) {
+            builder.environment().putAll(environment());
          }
 
-         return new SingleCommandInvocationHandler(method, timeout, normalTermination,
-                  resultFactory, errorFactory, builder, arguments);
+         return new SingleCommandInvocationHandler(method, timeout(), normalTermination(),
+                  resultFactory(), errorFactory(), builder, arguments);
       }
 
       private static void checkCharacterIs(char expected, int cIdx, String str) {
