@@ -1,6 +1,6 @@
 package com.j2speed.exec;
-import static org.junit.Assert.*;
-import static com.j2speed.exec.Compiler.*;
+
+import static com.j2speed.exec.Compiler.using;
 
 import org.junit.Test;
 
@@ -47,12 +47,41 @@ public class CompilerTest {
    public void testSyntaxError5() {
       using(TestInterface.class).on("testMethod").run("cmd { ?}").compile();
    }
-   
-   public void testUninstantiableResultFactory() {
-      fail();
+
+   @Test(expected=InstantiationException.class)
+   public void testUninstantiableResultFactory() throws Throwable {
+      try {
+         using(TestInterface2.class);
+      } catch (RuntimeException e) {
+         throw e.getCause();
+      }
+   }
+
+   @Test(expected=InstantiationException.class)
+   public void testUninstantiableErrorFactory() throws Throwable {
+      try {
+         using(TestInterface3.class);
+      } catch (RuntimeException e) {
+         throw e.getCause();
+      }
    }
 
    interface TestInterface {
       void testMethod();
+   }
+
+   interface TestInterface2 {
+      @ResultFactory(BadResult.class)
+      String testMethod();
+   }
+
+   interface TestInterface3 {
+      @ErrorFactory(BadError.class)
+      void testMethod();
+   }
+
+   public static abstract class BadResult extends AbstractResultBuilderFactory<String> {
+   }
+   public static abstract class BadError implements ErrorBuilderFactory<Throwable> {
    }
 }

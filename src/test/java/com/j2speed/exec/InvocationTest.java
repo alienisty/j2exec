@@ -58,24 +58,24 @@ public class InvocationTest {
    @RedirectError
    @ResultFactory(Result.class)
    interface Nothing {
-      @Command(CONCATENATE)
+      @Run(CONCATENATE)
       String toDo();
    }
 
    interface Concat {
-      @Command(CONCATENATE + " {?} {?}")
+      @Run(CONCATENATE + " {?} {?}")
       @ResultFactory(Result.class)
       String run(@NonNull String prefix, @NonNull String postfix);
    }
 
    interface Concat2 {
-      @Command(CONCATENATE + " \\{?} {?} {?}")
+      @Run(CONCATENATE + " \\{?} {?} {?}")
       @ResultFactory(Result.class)
       String concat(@NonNull String prefix, @NonNull String postfix);
    }
 
    interface ForEver {
-      @Command(FOREVER)
+      @Run(FOREVER)
       void doNothing();
    }
 

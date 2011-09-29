@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 
 @Retention(RUNTIME)
 @Target({ METHOD })
-public @interface Command {
+public @interface Run {
    /**
     * Accepts strings like:
     * 

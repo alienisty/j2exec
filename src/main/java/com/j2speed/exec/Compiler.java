@@ -265,7 +265,7 @@ public abstract class Compiler<T> {
 
       void parseAnnotations(Method method) {
          super.parseAnnotations(method);
-         final Command command = (Command) method.getAnnotation(Command.class);
+         final Run command = (Run) method.getAnnotation(Run.class);
          if (command != null) {
             this.command = command.value().trim();
          }
