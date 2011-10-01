@@ -1,7 +1,9 @@
-package com.j2speed.exec;
+package com.j2speed.exec.impl;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+
+import com.j2speed.exec.ResultBuilderFactory;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 

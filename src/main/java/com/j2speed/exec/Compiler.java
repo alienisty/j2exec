@@ -15,11 +15,22 @@ import java.util.Map;
 
 import com.j2speed.exec.impl.Argument;
 import com.j2speed.exec.impl.MultiCommandInvocationHanlder;
-import com.j2speed.exec.impl.SingleCommandInvocationHandler;
+import com.j2speed.exec.impl.NoArgsInvocationHandler;
+import com.j2speed.exec.impl.SingleInvocationHandler;
+import com.j2speed.exec.impl.VarArgInvocationHandler;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
+/**
+ * Note that by design only one binding parameter is allowed within a quotation section.
+ * 
+ * @version
+ * @since
+ * @author Alessandro Nistico
+ * 
+ * @param <T>
+ */
 public abstract class Compiler<T> {
 
    private boolean redirectError;
@@ -353,18 +364,17 @@ public abstract class Compiler<T> {
          return global.compile();
       }
 
-      private SingleCommandInvocationHandler newHandler() {
+      private SingleInvocationHandler newHandler() {
          if (command == null || command.isEmpty()) {
             throw new IllegalStateException("No command specified for method " + method);
          }
          ProcessBuilder builder = new ProcessBuilder(new ArrayList<String>());
          List<Argument> arguments = new LinkedList<Argument>();
 
-         return newHandler(builder, arguments);
+         return parseCommand(builder, arguments);
       }
 
-      private SingleCommandInvocationHandler newHandler(ProcessBuilder builder,
-               List<Argument> arguments) {
+      private SingleInvocationHandler parseCommand(ProcessBuilder builder, List<Argument> arguments) {
          List<String> tokens = builder.command();
 
          boolean quoting = false;
@@ -430,8 +440,21 @@ public abstract class Compiler<T> {
             builder.environment().putAll(environment());
          }
 
-         return new SingleCommandInvocationHandler(method, timeout(), normalTermination(),
-                  resultFactory(), errorFactory(), builder, arguments);
+         final ResultBuilderFactory<?> resultBuilderFactory = method.getReturnType() == Void.class ? null
+                  : resultFactory();
+         final Class<?>[] parameterTypes = method.getParameterTypes();
+         if (parameterTypes == null || parameterTypes.length == 0) {
+            return new NoArgsInvocationHandler(method, timeout(), normalTermination(),
+                     resultBuilderFactory, errorFactory(), builder, arguments);
+         }
+
+         if (parameterTypes[parameterTypes.length - 1].isArray()) {
+            return new VarArgInvocationHandler(method, timeout(), normalTermination(),
+                     resultBuilderFactory, errorFactory(), builder, arguments);
+         }
+
+         return new SingleInvocationHandler(method, timeout(), normalTermination(),
+                  resultBuilderFactory, errorFactory(), builder, arguments);
       }
 
       private static void checkCharacterIs(char expected, int cIdx, String str) {

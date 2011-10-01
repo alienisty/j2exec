@@ -1,6 +1,9 @@
-package com.j2speed.exec;
+package com.j2speed.exec.impl;
 
 import java.io.ByteArrayOutputStream;
+
+import com.j2speed.exec.ErrorBuilder;
+import com.j2speed.exec.ExecutionException;
 
 public class DefaultErrorBuilder implements ErrorBuilder<ExecutionException> {
    

@@ -5,18 +5,20 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-
-
 public class MultiCommandInvocationHanlder implements InvocationHandler {
 
-   Map<Method, SingleCommandInvocationHandler> handlers = new HashMap<Method, SingleCommandInvocationHandler>();
+   private final Map<Method, SingleInvocationHandler> handlers = new HashMap<Method, SingleInvocationHandler>();
 
    @Override
    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-      return handlers.get(method).invoke(proxy, method, args);
+      SingleInvocationHandler handler = handlers.get(method);
+      if (handler == null) {
+         throw new UnsupportedOperationException("Method " + method + " not mapped");
+      }
+      return handler.invoke(proxy, method, args);
    }
 
-   public void add(Method method, SingleCommandInvocationHandler handler) {
+   public void add(Method method, SingleInvocationHandler handler) {
       if (method == null) {
          throw new IllegalArgumentException("Method null");
       }

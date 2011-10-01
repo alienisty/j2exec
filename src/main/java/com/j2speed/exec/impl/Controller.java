@@ -4,7 +4,6 @@ import static java.util.concurrent.Executors.newCachedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-import java.io.InputStream;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.concurrent.ExecutorService;
@@ -13,8 +12,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import javax.annotation.concurrent.GuardedBy;
 
 import com.j2speed.exec.ExecutionException;
-import com.j2speed.exec.OutputProcessor;
-
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 
@@ -67,8 +64,8 @@ final class Controller {
       done(process);
    }
 
-   static void pump(@NonNull InputStream input, @NonNull OutputProcessor processor) {
-      PROCESSOR.execute(new OutputPump(input, processor));
+   static void pump(@NonNull OutputPump pumper) {
+      PROCESSOR.execute(pumper);
    }
 
    private static final class ShutdownHook extends Thread {
