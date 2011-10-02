@@ -3,10 +3,12 @@
  */
 package com.j2speed.exec.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.j2speed.exec.ErrorBuilderFactory;
 import com.j2speed.exec.ResultBuilderFactory;
@@ -40,9 +42,11 @@ public final class VarArgInvocationHandler extends SingleInvocationHandler {
                + (varargsCount = varargs.length));
       command.addAll(this.command);
       Argument argument;
-      for (int i = 0; i < last; i++) {
-         // We use toString() on the argument value to force an NPE if the value is not provided
-         command.set((argument = arguments[i]).getIndex(), argument.apply(args[i].toString()));
+      for (int i = 0, a = 0; i < last; i++) {
+         if (notExecutionParameter(args, i)) {
+            // We use toString() on the argument value to force an NPE if the value is not provided
+            command.set((argument = arguments[a++]).getIndex(), argument.apply(args[i].toString()));
+         }
       }
       if (varargsCount > 0) {
          int i;

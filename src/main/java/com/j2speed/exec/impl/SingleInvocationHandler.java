@@ -48,15 +48,15 @@ public class SingleInvocationHandler implements InvocationHandler {
    @CheckForNull
    private final ErrorBuilderFactory<?> errorBuilderFactory;
 
-   private long timeout;
+   long timeout;
 
    private int outputProcessorIndex = -1;
 
-   private int workingDirIndex = -1;
+   int workingDirIndex = -1;
 
-   private int environmentIndex = -1;
+   int environmentIndex = -1;
 
-   private int timeoutIndex = -1;
+   int timeoutIndex = -1;
 
    public SingleInvocationHandler(@NonNull Method method, long timeout, int normalTermination,
             @CheckForNull ResultBuilderFactory<?> resultBuilderFactory,
@@ -117,16 +117,7 @@ public class SingleInvocationHandler implements InvocationHandler {
             throws IOException {
       final List<String> command = builder.command();
       for (int i = 0, a = 0, count = args.length; i < count; i++) {
-         if (i == workingDirIndex) {
-            builder.directory((File) args[i]);
-         } else if (i == timeoutIndex) {
-            timeout = ((Long) args[i]).longValue();
-         } else if (i == environmentIndex) {
-            @SuppressWarnings("unchecked")
-            Map<String, String> execEnv = (Map<String, String>) args[i];
-            builder.environment().putAll(environment); // reset base
-            builder.environment().putAll(execEnv); // override with the passed in values
-         } else {
+         if (notExecutionParameter(args, i)) {
             final Argument argument;
             // We use toString() on the argument value to force an NPE if the value is not provided
             command.set((argument = arguments[a++]).getIndex(), argument.apply(args[i].toString()));
@@ -219,5 +210,24 @@ public class SingleInvocationHandler implements InvocationHandler {
          }
       }
       return found;
+   }
+
+   final boolean notExecutionParameter(@NonNull Object[] args, int index) {
+      if (index == workingDirIndex) {
+         builder.directory((File) args[index]);
+      } else if (index == timeoutIndex) {
+         timeout = ((Long) args[index]).longValue();
+      } else if (index == environmentIndex) {
+         setEnvironment(args[index]);
+      } else {
+         return true;
+      }
+      return false;
+   }
+
+   @SuppressWarnings("unchecked")
+   final void setEnvironment(Object env) {
+      builder.environment().putAll(environment); // reset base
+      builder.environment().putAll((Map<String, String>) env); // override with the passed in values
    }
 }
