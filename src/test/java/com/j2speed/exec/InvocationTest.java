@@ -148,6 +148,10 @@ public class InvocationTest {
             public String build() {
                return buffer.toString();
             }
+
+            @Override
+            public void done() {
+            }
          };
       }
    }
