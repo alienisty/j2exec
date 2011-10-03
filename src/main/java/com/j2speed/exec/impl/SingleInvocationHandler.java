@@ -3,23 +3,24 @@
  */
 package com.j2speed.exec.impl;
 
+import static com.j2speed.exec.impl.Controller.done;
 import static com.j2speed.exec.impl.Controller.pump;
 import static com.j2speed.exec.impl.Controller.register;
-import static com.j2speed.exec.impl.InvocationUtils.buildError;
-import static com.j2speed.exec.impl.InvocationUtils.processOutput;
-import static java.util.Collections.emptyMap;
+import static com.j2speed.exec.impl.OutputPump.pump;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import com.j2speed.exec.Env;
 import com.j2speed.exec.ErrorBuilder;
 import com.j2speed.exec.ErrorBuilderFactory;
+import com.j2speed.exec.ExecutionException;
 import com.j2speed.exec.OutputProcessor;
 import com.j2speed.exec.ResultBuilder;
 import com.j2speed.exec.ResultBuilderFactory;
@@ -40,23 +41,25 @@ public class SingleInvocationHandler implements InvocationHandler {
    @NonNull
    private final ProcessBuilder builder;
    @NonNull
-   private Map<String, String> environment;
+   private final Map<String, String> environment;
    @NonNull
    private final Argument[] arguments;
    @CheckForNull
-   private ResultBuilderFactory<?> resultBuilderFactory;
+   private OutputProcessor outputProcessor;
+   @CheckForNull
+   private final ResultBuilderFactory<?> resultBuilderFactory;
    @CheckForNull
    private final ErrorBuilderFactory<?> errorBuilderFactory;
 
-   long timeout;
+   private long timeout;
 
-   private int outputProcessorIndex = -1;
+   private final int outputProcessorIndex;
 
-   int workingDirIndex = -1;
+   private final int workingDirIndex;
 
-   int environmentIndex = -1;
+   private final int environmentIndex;
 
-   int timeoutIndex = -1;
+   private final int timeoutIndex;
 
    public SingleInvocationHandler(@NonNull Method method, long timeout, int normalTermination,
             @CheckForNull ResultBuilderFactory<?> resultBuilderFactory,
@@ -65,8 +68,8 @@ public class SingleInvocationHandler implements InvocationHandler {
 
       final int argsCount = arguments.size();
       final Class<?>[] params = method.getParameterTypes();
-
-      if (params.length < argsCount) {
+      final int paramsCount;
+      if ((paramsCount = params.length) < argsCount) {
          throw new IllegalArgumentException("Not enough parameters in the method");
       }
 
@@ -78,74 +81,13 @@ public class SingleInvocationHandler implements InvocationHandler {
          }
       }
 
-      this.normalTermination = normalTermination;
-      this.timeout = timeout;
-      this.builder = builder;
-      this.environment = emptyMap();
-      this.arguments = arguments.toArray(new Argument[argsCount]);
-      this.resultBuilderFactory = resultBuilderFactory;
-      this.errorBuilderFactory = errorBuilderFactory;
-
-      parseParameters(method);
-   }
-
-   @Override
-   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-      Process process;
-      boolean redirectError;
-      long timeout;
-      synchronized (builder) {
-         process = start(builder, arguments, args);
-         redirectError = builder.redirectErrorStream();
-         timeout = this.timeout;
-      }
-      final Watchdog watchdog = register(process, timeout);
-
-      final ErrorBuilder<?> error = processError(process, redirectError);
-      final ResultBuilder<?> result = processOutput(args, process, resultBuilderFactory);
-
-      watchdog.cancel();
-      if (process.exitValue() != normalTermination) {
-         throw buildError(error);
-      }
-
-      return result.build();
-   }
-
-   @NonNull
-   Process start(ProcessBuilder builder, Argument[] arguments, @NonNull Object[] args)
-            throws IOException {
-      final List<String> command = builder.command();
-      for (int i = 0, a = 0, count = args.length; i < count; i++) {
-         if (notExecutionParameter(args, i)) {
-            final Argument argument;
-            // We use toString() on the argument value to force an NPE if the value is not provided
-            command.set((argument = arguments[a++]).getIndex(), argument.apply(args[i].toString()));
-         }
-      }
-
-      return builder.start();
-   }
-
-   private ErrorBuilder<? extends Throwable> processError(Process process, boolean redirectError) {
-      final ErrorBuilder<? extends Throwable> error;
-      if (redirectError) {
-         error = null;
-      } else {
-         if (errorBuilderFactory != null) {
-            error = errorBuilderFactory.create();
-         } else {
-            error = new DefaultErrorBuilder();
-         }
-         pump(new OutputPump(process.getErrorStream(), error));
-      }
-      return error;
-   }
-
-   private void parseParameters(final Method method) {
-      final Class<?>[] params = method.getParameterTypes();
+      int outputProcessorIndex = -1;
+      int workingDirIndex = -1;
+      int environmentIndex = -1;
+      int timeoutIndex = -1;
+      Map<String, String> environment = Collections.emptyMap();
       final Annotation[][] annotations = method.getParameterAnnotations();
-      for (int i = 0, argsCount = params.length; i < argsCount; i++) {
+      for (int i = 0; i < paramsCount; i++) {
          if (OutputProcessor.class.isAssignableFrom(params[i])) {
             if (outputProcessorIndex != -1) {
                throw new IllegalArgumentException("Only one OuputProcessor is allowed");
@@ -186,6 +128,118 @@ public class SingleInvocationHandler implements InvocationHandler {
             timeoutIndex = i;
          }
       }
+
+      this.normalTermination = normalTermination;
+      this.timeout = timeout;
+      this.builder = builder;
+      this.arguments = arguments.toArray(new Argument[argsCount]);
+      this.resultBuilderFactory = resultBuilderFactory;
+      this.errorBuilderFactory = errorBuilderFactory;
+      this.outputProcessorIndex = outputProcessorIndex;
+      this.workingDirIndex = workingDirIndex;
+      this.environmentIndex = environmentIndex;
+      this.environment = environment;
+      this.timeoutIndex = timeoutIndex;
+   }
+
+   @Override
+   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+      final Process process;
+      final boolean redirectError;
+      final long timeout;
+      final OutputProcessor output;
+      synchronized (builder) {
+         process = start(builder, arguments, args);
+         output = outputProcessor;
+         redirectError = builder.redirectErrorStream();
+         timeout = this.timeout;
+      }
+      final Watchdog watchdog = register(process, timeout);
+
+      final ErrorBuilder<?> error = processError(process, redirectError);
+      final ResultBuilder<?> result = processOutput(process, output);
+
+      watchdog.cancel();
+      if (process.exitValue() != normalTermination) {
+         throw buildError(error);
+      }
+
+      return result.build();
+   }
+
+   @NonNull
+   Process start(ProcessBuilder builder, Argument[] arguments, @NonNull Object[] args)
+            throws IOException {
+      final List<String> command = builder.command();
+      for (int i = 0, a = 0, count = args.length; i < count; i++) {
+         if (notExecutionParameter(args, i)) {
+            final Argument argument;
+            // We use toString() on the argument value to force an NPE if the value is not provided
+            command.set((argument = arguments[a++]).getIndex(), argument.apply(args[i].toString()));
+         }
+      }
+
+      return builder.start();
+   }
+
+   final boolean notExecutionParameter(@NonNull Object[] args, int index) {
+      if (index == workingDirIndex) {
+         builder.directory((File) args[index]);
+      } else if (index == timeoutIndex) {
+         timeout = ((Long) args[index]).longValue();
+      } else if (index == environmentIndex) {
+         setEnvironment(args[index]);
+      } else if (index == outputProcessorIndex) {
+         outputProcessor = (OutputProcessor) args[index];
+      } else {
+         return true;
+      }
+      return false;
+   }
+
+   @SuppressWarnings("unchecked")
+   final void setEnvironment(Object env) {
+      builder.environment().putAll(environment); // reset base
+      builder.environment().putAll((Map<String, String>) env); // override with the passed in values
+   }
+
+   private ErrorBuilder<? extends Throwable> processError(Process process, boolean redirectError) {
+      final ErrorBuilder<? extends Throwable> error;
+      if (redirectError) {
+         error = null;
+      } else {
+         if (errorBuilderFactory != null) {
+            error = errorBuilderFactory.create();
+         } else {
+            error = new DefaultErrorBuilder();
+         }
+         pump(new OutputPump(process, process.getErrorStream(), error));
+      }
+      return error;
+   }
+
+   private ResultBuilder<?> processOutput(Process process, @CheckForNull OutputProcessor output)
+            throws InterruptedException {
+
+      ResultBuilder<?> result = ResultBuilder.VOID;
+      if (output == null) {
+         if (resultBuilderFactory != null) {
+            result = resultBuilderFactory.create();
+         }
+         output = result;
+      }
+
+      try {
+         pump(process.getInputStream(), output);
+      } catch (Throwable th) {
+         process.destroy();
+      } finally {
+         done(process);
+      }
+
+      process.waitFor();
+
+      return result;
    }
 
    private boolean contains(@NonNull Annotation[] annotations, @NonNull Class<?> annotation,
@@ -212,22 +266,14 @@ public class SingleInvocationHandler implements InvocationHandler {
       return found;
    }
 
-   final boolean notExecutionParameter(@NonNull Object[] args, int index) {
-      if (index == workingDirIndex) {
-         builder.directory((File) args[index]);
-      } else if (index == timeoutIndex) {
-         timeout = ((Long) args[index]).longValue();
-      } else if (index == environmentIndex) {
-         setEnvironment(args[index]);
-      } else {
-         return true;
+   @NonNull
+   private static Throwable buildError(@CheckForNull ErrorBuilder<? extends Throwable> error) {
+      if (error != null) {
+         final Throwable exception = error.build();
+         if (exception != null) {
+            return exception;
+         }
       }
-      return false;
-   }
-
-   @SuppressWarnings("unchecked")
-   final void setEnvironment(Object env) {
-      builder.environment().putAll(environment); // reset base
-      builder.environment().putAll((Map<String, String>) env); // override with the passed in values
+      return new ExecutionException("Unknown error");
    }
 }

@@ -1,12 +1,19 @@
-package com.j2speed.exec;
+package com.j2speed.exec.impl;
 
-import static com.j2speed.exec.Compiler.using;
+import static com.j2speed.exec.impl.Compiler.using;
 
 import java.io.File;
 import java.util.Map;
 
 import org.junit.Test;
 
+import com.j2speed.exec.Env;
+import com.j2speed.exec.ErrorBuilderFactory;
+import com.j2speed.exec.ErrorFactory;
+import com.j2speed.exec.ResultFactory;
+import com.j2speed.exec.Run;
+import com.j2speed.exec.Timeout;
+import com.j2speed.exec.WorkingDir;
 import com.j2speed.exec.impl.AbstractResultBuilderFactory;
 
 public class CompilerTest {

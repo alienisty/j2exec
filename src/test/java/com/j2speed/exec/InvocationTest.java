@@ -1,6 +1,6 @@
 package com.j2speed.exec;
 
-import static com.j2speed.exec.Compiler.using;
+import static com.j2speed.exec.impl.Compiler.using;
 import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayOutputStream;
