@@ -1,5 +1,12 @@
 package com.j2speed.exec;
 
+/**
+ * Generic execution exception.
+ * 
+ * TODO should we add support to include the failing command line? 
+ * 
+ * @author Alessandro Nistico
+ */
 public class ExecutionException extends RuntimeException {
 
    private static final long serialVersionUID = 1L;

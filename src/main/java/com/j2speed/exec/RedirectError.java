@@ -7,6 +7,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+/**
+ * Used to specify if to redirect the error output to the standard output. This can be applied
+ * globally on a type and/or specifically on a method.
+ * 
+ * @author Alessandro Nistico
+ */
 @Retention(RUNTIME)
 @Target({ METHOD, TYPE })
 public @interface RedirectError {
