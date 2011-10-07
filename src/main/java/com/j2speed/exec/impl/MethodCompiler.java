@@ -233,7 +233,7 @@ public final class MethodCompiler<T> extends Compiler<T> {
       }
 
       if (parameterTypes[parameterTypes.length - 1].isArray()) {
-         return new VarArgInvocationHandler(method, timeout(), normalTermination(),
+         return new VarargsInvocationHandler(method, timeout(), normalTermination(),
                   resultBuilderFactory, errorFactory(), builder, arguments);
       }
 

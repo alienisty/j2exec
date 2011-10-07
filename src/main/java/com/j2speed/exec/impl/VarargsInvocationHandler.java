@@ -23,11 +23,11 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * 
  * @author Alessandro Nistico
  */
-public final class VarArgInvocationHandler extends SingleInvocationHandler {
+public final class VarargsInvocationHandler extends SingleInvocationHandler {
    @NonNull
    private final List<String> command;
 
-   public VarArgInvocationHandler(Method method, long timeout, int normalTermination,
+   public VarargsInvocationHandler(Method method, long timeout, int normalTermination,
             ResultBuilderFactory<?> resultBuilderFactory,
             ErrorBuilderFactory<?> errorBuilderFactory, ProcessBuilder builder,
             List<Argument> arguments) {
@@ -57,14 +57,15 @@ public final class VarArgInvocationHandler extends SingleInvocationHandler {
 
    @Override
    Process start(ProcessBuilder builder, Argument[] arguments, Object[] args) throws IOException {
-      final int last;
+      final int last = arguments.length - 1;
       final int varargsCount;
-      final Object[] varargs = (Object[]) args[last = args.length - 1];
+      final int nonVarargsCount;
+      final Object[] varargs = (Object[]) args[nonVarargsCount = args.length - 1];
       final List<String> command = new ArrayList<String>(this.command.size()
                + (varargsCount = varargs.length));
       command.addAll(this.command);
       Argument argument;
-      for (int i = 0, a = 0; i < last; i++) {
+      for (int i = 0, a = 0; i < nonVarargsCount; i++) {
          if (notExecutionParameter(args, i)) {
             // We use toString() on the argument value to force an NPE if the value is not provided
             command.set((argument = arguments[a++]).getIndex(), argument.apply(args[i].toString()));

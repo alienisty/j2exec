@@ -7,6 +7,7 @@ import java.io.File;
 
 import org.junit.Test;
 
+import com.j2speed.exec.impl.StringResultBuilder;
 import com.j2speed.exec.impl.StringResultBuilderFactory;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -52,6 +53,32 @@ public class InvocationTest {
       actual = concatenate.concat(PREFIX, POSTFIX, separator);
 
       assertEquals(PREFIX + POSTFIX + separator, actual);
+   }
+
+   @Test
+   public void testCommandWithVarargsAndOuputProcessor() {
+      VarargsAndOuputProcessor concatenate = using(VarargsAndOuputProcessor.class).workIn(PWD).compile();
+
+      String separator = "-";
+      String one = "one";
+      String two = "two";
+      String three = "three";
+      StringResultBuilder output = new StringResultBuilder();
+      concatenate.concat(output, PREFIX, POSTFIX, separator, one, two, three);
+      String actual=output.build();
+      
+      assertEquals(PREFIX + POSTFIX + separator + one + two + three, actual);
+      
+      output.reset();
+      concatenate.concat(output, PREFIX, POSTFIX, separator);
+      actual=output.build();
+      
+      assertEquals(PREFIX + POSTFIX + separator, actual);
+   }
+   
+   private interface VarargsAndOuputProcessor {
+      @Run(CONCATENATE + " {?}")
+      void concat(OutputProcessor out, String ... args);
    }
 
    @Test

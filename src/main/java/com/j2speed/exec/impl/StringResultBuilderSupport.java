@@ -22,14 +22,18 @@ class StringResultBuilderSupport {
    public final void process(ByteBuffer buffer) {
       builder.append(charset.decode(buffer).array());
    }
-   
+
    public void done() {
    }
-   
+
+   public void reset() {
+      builder.delete(0, builder.length());
+   }
+
    int size() {
       return builder.length();
    }
-   
+
    String buildString() {
       return builder.toString();
    }
