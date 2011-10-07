@@ -2,6 +2,7 @@ package com.j2speed.exec.impl;
 
 import static org.junit.Assert.*;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
 import org.junit.Test;
@@ -25,7 +26,7 @@ public class LineProcessorTest {
       
       byte [] output = (lines[0] + platformSeparator + lines[1]).getBytes(Charset.forName("US-ASCII"));
       
-      processor.process(output, output.length);
+      processor.process(ByteBuffer.wrap(output));
    }
 
 }

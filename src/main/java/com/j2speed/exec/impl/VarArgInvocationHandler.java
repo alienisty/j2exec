@@ -4,12 +4,17 @@
 package com.j2speed.exec.impl;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.j2speed.exec.Env;
 import com.j2speed.exec.ErrorBuilderFactory;
 import com.j2speed.exec.ResultBuilderFactory;
+import com.j2speed.exec.Run;
+import com.j2speed.exec.Timeout;
+import com.j2speed.exec.WorkingDir;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 
@@ -28,7 +33,26 @@ public final class VarArgInvocationHandler extends SingleInvocationHandler {
             List<Argument> arguments) {
       super(method, timeout, normalTermination, resultBuilderFactory, errorBuilderFactory, builder,
                arguments);
+      Annotation[] varargAnnotations = method.getParameterAnnotations()[method.getParameterTypes().length - 1];
+      if (varargAnnotations != null) {
+         checkVarArgsAnnotations(varargAnnotations);
+      }
       command = builder.command();
+   }
+
+   private void checkVarArgsAnnotations(@NonNull Annotation[] annotations) {
+      final Class<?>[] exclusions = { Run.class, Env.class, Timeout.class, WorkingDir.class };
+      for (Annotation a : annotations) {
+         for (Class<?> exclusion : exclusions) {
+            if (exclusion == a.annotationType()) {
+               StringBuilder message = new StringBuilder(64).append("None any of");
+               for (Class<?> exc : exclusions) {
+                  message.append(" @").append(exc.getSimpleName());
+               }
+               throw new IllegalArgumentException(message.toString());
+            }
+         }
+      }
    }
 
    @Override

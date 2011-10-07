@@ -3,12 +3,11 @@ package com.j2speed.exec;
 import static com.j2speed.exec.impl.Compiler.using;
 import static org.junit.Assert.assertEquals;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 
 import org.junit.Test;
 
-import com.j2speed.exec.impl.AbstractResultBuilderFactory;
+import com.j2speed.exec.impl.StringResultBuilderFactory;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
@@ -101,13 +100,13 @@ public class InvocationTest {
    }
 
    @RedirectError
-   @ResultFactory(Result.class)
+   @ResultFactory(StringResultBuilderFactory.class)
    interface Nothing {
       @Run(CONCATENATE)
       String toDo();
    }
 
-   @ResultFactory(Result.class)
+   @ResultFactory(StringResultBuilderFactory.class)
    interface Concat {
       @Run(CONCATENATE + " {?} {?}")
       String concat(@NonNull String prefix, @NonNull String postfix);
@@ -122,7 +121,7 @@ public class InvocationTest {
 
    interface Concat2 {
       @Run(CONCATENATE + " \\{?} {?} {?}")
-      @ResultFactory(Result.class)
+      @ResultFactory(StringResultBuilderFactory.class)
       String concat(@NonNull String prefix, @NonNull String postfix);
    }
 
@@ -132,28 +131,5 @@ public class InvocationTest {
 
       @Run(FOREVER)
       void doNothing(@Timeout long timeout);
-   }
-
-   public static class Result extends AbstractResultBuilderFactory<String> {
-      @Override
-      public ResultBuilder<String> create() {
-         return new ResultBuilder<String>() {
-            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-
-            @Override
-            public void process(byte[] buffer, int legth) {
-               this.buffer.write(buffer, 0, legth);
-            }
-
-            @Override
-            public String build() {
-               return buffer.toString();
-            }
-
-            @Override
-            public void done() {
-            }
-         };
-      }
    }
 }

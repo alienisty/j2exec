@@ -1,5 +1,9 @@
 package com.j2speed.exec;
 
+import java.nio.ByteBuffer;
+
+import edu.umd.cs.findbugs.annotations.NonNull;
+
 /**
  * Allows to process output from a process.
  * 
@@ -11,7 +15,7 @@ public interface OutputProcessor {
     */
    OutputProcessor SINK = new OutputProcessor() {
       @Override
-      public void process(byte[] buffer, int legth) {
+      public void process(ByteBuffer buffer) {
       }
 
       @Override
@@ -23,11 +27,9 @@ public interface OutputProcessor {
     * Process the provided data.
     * 
     * @param buffer
-    *           the buffer containing the data.
-    * @param legth
-    *           the length of the data available in the buffer.
+    *           the buffer containing the data. Note that the buffer is passed already flipped.
     */
-   void process(byte[] buffer, int legth);
+   void process(@NonNull ByteBuffer buffer);
 
    /**
     * Invoked when no more output is available.

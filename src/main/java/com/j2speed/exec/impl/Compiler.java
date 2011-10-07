@@ -1,6 +1,5 @@
 package com.j2speed.exec.impl;
 
-
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
@@ -37,6 +36,8 @@ public abstract class Compiler<T> {
    @CheckForNull
    private ErrorBuilderFactory<?> errorFactory;
    @CheckForNull
+   private File commandDirectory;
+   @CheckForNull
    private File workingDirectory;
    @CheckForNull
    private Map<String, String> environment;
@@ -53,6 +54,7 @@ public abstract class Compiler<T> {
    @NonNull
    public abstract T compile();
 
+   @NonNull
    public Compiler<T> timeout(long timeout) {
       this.timeout = timeout;
       return this;
@@ -62,6 +64,7 @@ public abstract class Compiler<T> {
       return timeout;
    }
 
+   @NonNull
    public Compiler<T> redirectError(boolean redirectError) {
       this.redirectError = redirectError;
       return this;
@@ -71,6 +74,7 @@ public abstract class Compiler<T> {
       return redirectError;
    }
 
+   @NonNull
    public Compiler<T> normalTermination(int normalTermination) {
       this.normalTermination = normalTermination;
       return this;
@@ -78,6 +82,23 @@ public abstract class Compiler<T> {
 
    protected int normalTermination() {
       return normalTermination;
+   }
+
+   /**
+    * Sets the location for the command if it is not in the environment path.
+    * 
+    * @param commandDir
+    * @return
+    */
+   @NonNull
+   public Compiler<T> commandIn(@CheckForNull File commandDir) {
+      this.commandDirectory = commandDir;
+      return this;
+   }
+
+   @CheckForNull
+   protected File commandDirectory() {
+      return commandDirectory;
    }
 
    /**
@@ -91,6 +112,7 @@ public abstract class Compiler<T> {
       return this;
    }
 
+   @CheckForNull
    protected File workingDirectory() {
       return workingDirectory;
    }
@@ -113,6 +135,7 @@ public abstract class Compiler<T> {
       return environment;
    }
 
+   @NonNull
    public Compiler<T> use(@CheckForNull ResultBuilderFactory<?> resultFactory) {
       this.resultFactory = resultFactory;
       return this;
@@ -122,6 +145,7 @@ public abstract class Compiler<T> {
       return resultFactory;
    }
 
+   @NonNull
    public Compiler<T> use(@CheckForNull ErrorBuilderFactory<?> errorFactory) {
       this.errorFactory = errorFactory;
       return this;

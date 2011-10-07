@@ -96,7 +96,7 @@ public class SingleInvocationHandler implements InvocationHandler {
             // If an output processor parameter is used, the return value of the method should
             // be void and the factory should be set to null
             resultBuilderFactory = null;
-            if (method.getReturnType() != Void.class) {
+            if (method.getReturnType() != void.class) {
                throw new IllegalStateException("Method " + method
                         + " has an OutputProcessor parameter and should return void");
             }

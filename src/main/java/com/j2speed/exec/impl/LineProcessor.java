@@ -33,8 +33,8 @@ public abstract class LineProcessor implements OutputProcessor {
       separatorLength = separator.length();
    }
 
-   public final void process(byte[] buffer, int length) {
-      char[] chars = charset.decode(ByteBuffer.wrap(buffer, 0, length)).array();
+   public final void process(ByteBuffer buffer) {
+      char[] chars = charset.decode(buffer).array();
       char s = separator.charAt(separatorPosition);
       for (int i = 0, charsCount = chars.length; i < charsCount; i++) {
          char c = chars[i];

@@ -4,6 +4,7 @@ import static com.j2speed.exec.impl.Controller.kill;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 import com.j2speed.exec.OutputProcessor;
 
@@ -33,12 +34,17 @@ class OutputPump implements Runnable {
    static void pump(@NonNull InputStream input, @NonNull OutputProcessor processor)
             throws IOException {
       int read;
-      byte[] buffer = new byte[4096];
-      while ((read = input.read(buffer)) != -1) {
+      ByteBuffer buffer = ByteBuffer.allocate(4096);
+      byte[] buf = buffer.array();
+      while ((read = input.read(buf, buffer.position(), buffer.remaining())) != -1) {
+         buffer.position(buffer.position() + read);
+         buffer.flip();
          try {
-            processor.process(buffer, read);
+            processor.process(buffer);
          } catch (Exception e) {
-            // exception are swallowed, but errors should not be caought
+            // exception are swallowed, but errors should not be caught
+         } finally {
+            buffer.compact();
          }
       }
    }

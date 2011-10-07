@@ -43,6 +43,11 @@ public final class MethodCompiler<T> extends Compiler<T> {
       return global;
    }
 
+   @NonNull
+   public TypeCompiler<T> done() {
+      return global;
+   }
+
    @Override
    protected long timeout() {
       if (super.timeout() > 0)
@@ -68,6 +73,20 @@ public final class MethodCompiler<T> extends Compiler<T> {
    }
 
    @Override
+   public MethodCompiler<T> commandIn(File commandDir) {
+      super.commandIn(commandDir);
+      return this;
+   }
+
+   @Override
+   protected File commandDirectory() {
+      if (super.commandDirectory() != null) {
+         return super.workingDirectory();
+      }
+      return global.commandDirectory();
+   }
+
+   @Override
    public MethodCompiler<T> workIn(File workingDir) {
       super.workIn(workingDir);
       return this;
@@ -75,10 +94,10 @@ public final class MethodCompiler<T> extends Compiler<T> {
 
    @Override
    protected File workingDirectory() {
-      if (super.workingDirectory() != null)
+      if (super.workingDirectory() != null) {
          return super.workingDirectory();
-      else
-         return global.workingDirectory();
+      }
+      return global.workingDirectory();
    }
 
    @Override
@@ -89,10 +108,10 @@ public final class MethodCompiler<T> extends Compiler<T> {
 
    @Override
    protected ResultBuilderFactory<?> resultFactory() {
-      if (super.resultFactory() != null)
+      if (super.resultFactory() != null) {
          return super.resultFactory();
-      else
-         return global.resultFactory();
+      }
+      return global.resultFactory();
    }
 
    @Override
@@ -176,6 +195,22 @@ public final class MethodCompiler<T> extends Compiler<T> {
          arguments.add(new Argument(prefix, command.substring(tokenStart), index));
       } else if (tokenStart < command.length()) {
          tokens.add(command.substring(tokenStart));
+      }
+
+      File commandDirectory = commandDirectory();
+      if (commandDirectory != null) {
+         if (!commandDirectory.isDirectory()) {
+            throw new IllegalArgumentException(commandDirectory + " is not a directory");
+         }
+         File cmd = new File(commandDirectory, tokens.get(0));
+         if (!cmd.exists()) {
+            throw new IllegalArgumentException("The specified command " + cmd + " does not exist");
+         }
+         if (!cmd.canExecute()) {
+            throw new IllegalArgumentException("The specified command " + cmd
+                     + " cannot be executed");
+         }
+         tokens.set(0, "\"" + cmd.getAbsolutePath() + "\"");
       }
 
       builder.directory(workingDirectory());

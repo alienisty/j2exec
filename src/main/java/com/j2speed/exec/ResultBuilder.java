@@ -1,5 +1,7 @@
 package com.j2speed.exec;
 
+import java.nio.ByteBuffer;
+
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 
 /**
@@ -20,7 +22,7 @@ public interface ResultBuilder<T> extends OutputProcessor {
       }
 
       @Override
-      public void process(byte[] buffer, int legth) {
+      public void process(ByteBuffer buffer) {
       }
 
       public void done() {

@@ -10,6 +10,7 @@ import org.junit.Test;
 import com.j2speed.exec.Env;
 import com.j2speed.exec.ErrorBuilderFactory;
 import com.j2speed.exec.ErrorFactory;
+import com.j2speed.exec.OutputProcessor;
 import com.j2speed.exec.ResultFactory;
 import com.j2speed.exec.Run;
 import com.j2speed.exec.Timeout;
@@ -167,7 +168,17 @@ public class CompilerTest {
       @Run("cmd")
       void m(@Timeout Long timeout);
    }
-
+   
+   @Test(expected = IllegalStateException.class)
+   public void testThatMethodWithOuputProcessorMustReturnVoid() {
+      using(TestMethodWithOuputProcessor.class).compile();
+   }
+   
+   interface TestMethodWithOuputProcessor {
+      @Run("cmd")
+      String testMethod(OutputProcessor out);
+   }
+   
    interface TestInterface {
       void testMethod();
    }
