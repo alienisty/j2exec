@@ -1,153 +1,276 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
- Licensed to the Apache Software Foundation (ASF) under one
- or more contributor license agreements.  See the NOTICE file
- distributed with this work for additional information
- regarding copyright ownership.  The ASF licenses this file
- to you under the Apache License, Version 2.0 (the
- "License"); you may not use this file except in compliance
- with the License.  You may obtain a copy of the License at
-
-   http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing,
- software distributed under the License is distributed on an
- "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- KIND, either express or implied.  See the License for the
- specific language governing permissions and limitations
- under the License.
+/**
+ * Copyright (c) 2007-2011 J2Speed. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at 
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0 
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 -->
-<project name="j2exec" default="jar" basedir=".">
+<project basedir="." default="jar" name="j2exec" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
 
-  <!-- include optional user-defined properties -->
-  <property file="user.properties" />
-  
-  <property file="build.properties" />
-  <property name="maven.build.version" value="0.1"/>
-  <property name="maven.build.output" value="target/classes"/>
-  <property name="maven.build.directory" value="target"/>
-  <property name="maven.build.final.name" value="j2exec-${maven.build.version}"/>
-  <property name="maven.test.reports" value="${maven.build.directory}/test-reports"/>
-  <property name="maven.test.output" value="target/test-classes"/>
-  <property name="maven.repo.local" value="${user.home}/.m2/repository"/>
-  <!-- JUnit version should agree with the version in pom.xml -->
-  <property name="maven.junit.jar" value="${maven.repo.local}/junit/junit/3.8.1/junit-3.8.1.jar"/>
-  <!-- These must agree with the versions in pom.xml -->
-  <property name="maven.compile.source" value="1.6"/>
-  <property name="maven.compile.target" value="1.6"/>
+  <property name="user.dev" location="${user.home}/.dev/${ant.project.name}" />
 
-  <path id="junit">
-      <pathelement location="${maven.junit.jar}"/>
+  <property file="${user.dev}/build.properties" />
+
+  <property name="artifactId" value="${ant.project.name}" />
+  <property name="version" value="trunk" />
+  <property name="class.level" value="1.6" />
+
+  <property name="src" location="src/main/java" />
+  <property name="test.src" location="src/test/java" />
+  <property name="build" location="build" />
+  <property name="test" location="${build}/test" />
+  <property name="lib" location="lib" />
+
+  <property name="test.classes" location="${test}/classes" />
+  <property name="build.classes" location="${build}/classes" />
+  <property name="cobertura" location="../../cobertura-1.9.4.1" />
+  <property name="instrumented" location="${build}/instrumented" />
+  <property name="cobertura.data" location="${build}/cobertura.ser" />
+
+  <!-- define artifacts' name, which follows the convention of Maven -->
+  <property name="maven-jar" value="${build}/lib/${artifactId}-${version}.jar" />
+  <property name="maven-javadoc-jar" value="${build}/lib/${artifactId}-${version}-javadoc.jar" />
+  <property name="maven-sources-jar" value="${build}/lib/${artifactId}-${version}-sources.jar" />
+
+  <!-- defined maven snapshots and staging repository id and url -->
+  <property name="maven-snapshots-repository-id" value="sonatype-nexus-snapshots" />
+  <property name="maven-snapshots-repository-url" value="https://oss.sonatype.org/content/repositories/snapshots/" />
+  <property name="maven-staging-repository-id" value="sonatype-nexus-staging" />
+  <property name="maven-staging-repository-url" value="https://oss.sonatype.org/service/local/staging/deploy/maven2/" />
+
+  <path id="cobertura.classpath">
+    <fileset dir="${cobertura}">
+      <include name="cobertura.jar" />
+      <include name="lib/**/*.jar" />
+    </fileset>
   </path>
 
-  <target name="clean" description="Clean the output directory">
-    <delete dir="${maven.build.directory}"/>
+  <path id="project.classpath">
+    <pathelement location="${build.classes}" />
+    <pathelement location="${lib}/junit.jar" />
+    <pathelement location="${lib}/org.hamcrest.core_1.1.0.jar" />
+    <pathelement location="${lib}/annotations.jar" />
+    <pathelement location="${lib}/jsr305.jar" />
+  </path>
+
+  <taskdef classpathref="cobertura.classpath" resource="tasks.properties" />
+
+  <target name="jar" depends="build">
+    <jar destfile="${build}/${ant.project.name}-${version}.jar">
+      <fileset dir="${basedir}">
+        <include name="LICENSE.txt" />
+      </fileset>
+      <fileset dir="${build.classes}">
+        <include name="**/*.class" />
+      </fileset>
+    </jar>
   </target>
 
-  <target name="compile" description="Compile the code">
-    <mkdir dir="${maven.build.output}"/>
-    <javac destdir="${maven.build.output}" excludes="**/package.html" debug="true" deprecation="true" optimize="false"
-        includeAntRuntime="false"
-        source="${maven.compile.source}" target="${maven.compile.target}">
-      <src>
-        <pathelement location="${basedir}/src/main/java"/>
-      </src>
+  <target name="build" depends="init">      
+    <javac destdir="${build.classes}" optimize="true" debug="false" target="${class.level}">
+      <src path="src" />
+      <classpath refid="project.classpath" />
+      <compilerarg value="-Xlint:deprecation" />
     </javac>
   </target>
 
-  <target name="jar" depends="compile,test" description="Build the JAR">
-    <jar jarfile="${maven.build.directory}/${maven.build.final.name}.jar" basedir="${maven.build.output}" excludes="**/package.html"/>
+  <target name="init">
+    <mkdir dir="${build}" />
+    <mkdir dir="${build.classes}" />
+    <mkdir dir="${instrumented}" />
+    <mkdir dir="${test}" />
+    <mkdir dir="${test.classes}" />
   </target>
 
-  <target name="compile-tests" depends="junit-present, compile" description="Compile the test code" if="junit.present">
-    <mkdir dir="${maven.test.output}"/>
-    <javac destdir="${maven.test.output}" excludes="**/package.html" debug="true" deprecation="true" optimize="false" 
-        includeAntRuntime="false"
-        source="${maven.compile.source}" target="${maven.compile.target}">
-      <src>
-        <pathelement location="${basedir}/src/test/java"/>
-      </src>
-      <classpath>
-        <pathelement location="${maven.build.output}"/>
-        <path refid="junit"/>
-      </classpath>
+  <target name="build-debug" depends="init">
+    <javac destdir="${build.classes}" debug="true" target="${class.level}">
+      <src path="${src}" />
+      <classpath refid="project.classpath" />
     </javac>
   </target>
 
-  <target name="test" depends="junit-present, compile-tests" if="junit.present" description="Run the test cases">
-    <mkdir dir="${maven.test.reports}"/>
-    <junit printSummary="yes" haltonerror="true" haltonfailure="true" fork="true" dir=".">
-      <sysproperty key="basedir" value="."/>
-      <sysproperty key="COMMONS_EXEC_DEBUG" value="true"/>
-      <sysproperty key="COMMONS_EXEC_LENIENT" value="false"/>
-      <!-- 2008-12-30 fix sgoeschl using xml formatter breaks junit on JDK 1.3.1 -->
-      <!-- <formatter type="xml"/> -->
-      <formatter type="plain" usefile="false"/>
+  <target name="test" depends="clean, build-debug">
+    <javac destdir="${test.classes}" debug="true" target="${class.level}">
+      <src path="${test.src}" />
+      <classpath refid="project.classpath" />
+      <compilerarg value="-Xlint:deprecation" />
+    </javac>
+
+    <cobertura-instrument todir="${instrumented}" datafile="${cobertura.data}">
+      <fileset dir="${build.classes}">
+        <include name="**/*.class" />
+      </fileset>
+    </cobertura-instrument>
+
+    <junit fork="yes" forkmode="once" printsummary="on" dir="${test.classes}">
+      <sysproperty key="net.sourceforge.cobertura.datafile" file="${cobertura.data}" />
+      <formatter type="xml" />
       <classpath>
-        <pathelement location="${maven.build.output}"/>
-        <pathelement location="${maven.test.output}"/>
-        <path refid="junit"/>
+        <pathelement location="${instrumented}" />
+        <path refid="project.classpath" />
+        <pathelement location="${test.classes}" />
+        <path refid="cobertura.classpath" />
       </classpath>
-      <batchtest todir="${maven.test.reports}">
-        <fileset dir="${basedir}/src/test/java">
-          <include name="**/*Test.java"/>
-          <exclude name="**/*Abstract*Test.java"/>
+      <batchtest todir="${test}">
+        <fileset dir="${test.classes}">
+          <include name="**/*Test.class" />
         </fileset>
       </batchtest>
     </junit>
-  </target>
 
-  <target name="test-junit-present">
-    <available classname="junit.framework.Test" property="junit.present" classpathref="junit"/>
-  </target>
-
-  <target name="junit-present" depends="test-junit-present" unless="junit.present">
-    <echo>================================= WARNING ================================</echo>
-    <echo> JUnit isn't present in your classpath. Tests not executed. </echo>
-    <echo>==========================================================================</echo>
-  </target>
-
-  <!-- Starts preparing a test distribution -->
-  <target name="test-distribution-prepare" depends="clean, compile, compile-tests" if="junit.present">
-    <mkdir dir="${maven.build.directory}/dist/lib"/>
-    <!-- create the libraries -->
-    <copy file="${maven.junit.jar}" todir="${maven.build.directory}/dist/lib"/>
-    <jar jarfile="${maven.build.directory}/dist/lib/j2exec-test-${maven.build.version}.jar" basedir="${maven.test.output}" excludes="**/package.html"/>
-    <jar jarfile="${maven.build.directory}/dist/lib/${maven.build.final.name}.jar" basedir="${maven.build.output}" excludes="**/package.html"/>
-    <!-- copy the scripts -->
-    <copy todir="${maven.build.directory}/dist">
-      <fileset dir="${basedir}/src/test/bin"/>
-      <filterset>
-        <filter token="VERSION" value="${maven.build.version}"/>
-      </filterset>
-    </copy>
-    <copy todir="${maven.build.directory}/dist/src/test/scripts">
-      <fileset dir="${basedir}/src/test/scripts"/>
-    </copy>
-    <!-- make the shell script files readable/executable -->
-    <chmod dir="${maven.build.directory}/dist" perm="ugo+rx" includes="**/*.sh"/>
-    <!-- copy the various legal files -->
-    <copy file="${basedir}/NOTICE.txt" tofile="${maven.build.directory}/dist/NOTICE.txt"/>    
-    <copy file="${basedir}/LICENSE.txt" tofile="${maven.build.directory}/dist/LICENSE.txt"/>        
-  </target>
-  
-  <!-- Create a zip containing the test environment -->
-  <target name="test-distribution-zip" depends="test-distribution-prepare" if="junit.present">
-    <zip destfile="${maven.build.directory}/j2exec-test-${maven.build.version}.zip">
-      <fileset dir="${maven.build.directory}/dist">
-        <filename name="**/*.*"/>
+    <junitreport todir="${test}">
+      <fileset dir="${test}">
+        <include name="TEST-*.xml" />
       </fileset>
+      <report format="frames" todir="${test}/report/html" />
+    </junitreport>
+
+    <cobertura-report format="html" 
+    	                datafile="${cobertura.data}" 
+    	                destdir="${test}/coverage/html" 
+    	                srcdir="${src}" />
+
+    <delete>
+      <fileset dir="${test}">
+        <include name="TEST-*.xml" />
+        <include name="TESTS-*.xml" />
+      </fileset>
+      <fileset dir="${build.classes}">
+        <include name="**/*" />
+      </fileset>
+    </delete>
+    <delete dir="${test.classes}" />
+    <delete dir="${instrumented}" />
+  </target>
+
+  <target name="release" depends="clean, tag-version, test, jar, docs" description="make accessive-xxx.zip">
+    <zip destfile="${build}/${ant.project.name}-${version}.zip">
+      <zipfileset dir="${basedir}">
+        <include name="README.txt" />
+        <include name="LICENSE.txt" />
+        <include name="build.xml" />
+        <include name="${src}" />
+        <include name="${test.src}" />
+      </zipfileset>
+      <zipfileset dir="${build}">
+        <include name="${ant.project.name}-${version}.jar" />
+        <include name="javadoc/" />
+        <include name="${test.src}" />
+      </zipfileset>
+      <zipfileset dir="${test}">
+        <include name="coverage/" />
+        <include name="report/" />
+      </zipfileset>
     </zip>
+    <delete dir="${build.classes}" />
   </target>
 
-  <!-- Create a tar.gz containing the test environment -->
-  <target name="test-distribution-tar" depends="test-distribution-prepare" if="junit.present">
-    <tar tarfile="${maven.build.directory}/dist/j2exec-test-${maven.build.version}.tar" basedir="${maven.build.directory}/dist"/>
-    <gzip zipfile="${maven.build.directory}/j2exec-test-${maven.build.version}.tar.gz" src="${maven.build.directory}/dist/j2exec-test-${maven.build.version}.tar"/>
-    <delete file="${maven.build.directory}/dist/j2exec-test-${maven.build.version}.tar"/>
+  <target name="maven-jar" depends="build,docs">
+    <mkdir dir="${build}/lib" />
+    <!-- build the main artifact -->
+    <jar jarfile="${maven-jar}" basedir="${build.classes}" />
+
+    <!-- build the javadoc artifact -->
+    <jar jarfile="${maven-javadoc-jar}">
+      <fileset dir="${build}/javadoc" />
+    </jar>
+
+    <!-- build the sources artifact -->
+    <jar jarfile="${maven-sources-jar}">
+      <fileset dir="${src}" />
+    </jar>
   </target>
 
-  <target name="test-distribution" depends="junit-present,test-distribution-zip,test-distribution-tar" description="Creates a test distribution" if="junit.present" >
+  <target name="maven-deploy" depends="clean,test,maven-jar" description="deploy snapshot version to Maven snapshot repository">
+  <artifact:mvn mavenHome="${maven.home}" fork="yes">
+    <arg value="org.apache.maven.plugins:maven-deploy-plugin:2.6:deploy-file" />
+    <arg value="-Durl=${maven-snapshots-repository-url}" />
+    <arg value="-DrepositoryId=${maven-snapshots-repository-id}" />
+    <arg value="-DpomFile=pom.xml" />
+    <arg value="-Dfile=${maven-jar}" />
+  </artifact:mvn>
   </target>
-  
+
+  <!-- before this, update project version (both build.xml and pom.xml) from SNAPSHOT to RELEASE -->
+  <target name="maven-stage" depends="test,maven-jar" description="deploy release version to Maven staging repository">
+    <!-- sign and deploy the main artifact -->
+    <artifact:mvn mavenHome="${maven.home}" fork="yes">
+      <arg value="org.apache.maven.plugins:maven-gpg-plugin:1.3:sign-and-deploy-file" />
+      <arg value="-Durl=${maven-staging-repository-url}" />
+      <arg value="-DrepositoryId=${maven-staging-repository-id}" />
+      <arg value="-DpomFile=pom.xml" />
+      <arg value="-Dfile=${maven-jar}" />
+      <arg value="-Pgpg" />
+      <arg value="-e" />
+    </artifact:mvn>
+
+    <!-- sign and deploy the sources artifact -->
+    <artifact:mvn mavenHome="${maven.home}" fork="yes">
+      <arg value="org.apache.maven.plugins:maven-gpg-plugin:1.3:sign-and-deploy-file" />
+      <arg value="-Durl=${maven-staging-repository-url}" />
+      <arg value="-DrepositoryId=${maven-staging-repository-id}" />
+      <arg value="-DpomFile=pom.xml" />
+      <arg value="-Dfile=${maven-sources-jar}" />
+      <arg value="-Dclassifier=sources" />
+      <arg value="-Pgpg" />
+    </artifact:mvn>
+
+    <!-- sign and deploy the javadoc artifact -->
+    <artifact:mvn mavenHome="${maven.home}" fork="yes">
+      <arg value="org.apache.maven.plugins:maven-gpg-plugin:1.3:sign-and-deploy-file" />
+      <arg value="-Durl=${maven-staging-repository-url}" />
+      <arg value="-DrepositoryId=${maven-staging-repository-id}" />
+      <arg value="-DpomFile=pom.xml" />
+      <arg value="-Dfile=${maven-javadoc-jar}" />
+      <arg value="-Dclassifier=javadoc" />
+      <arg value="-Pgpg" />
+    </artifact:mvn>
+  </target>
+
+  <target name="clean">
+    <delete dir="${build}" />
+  </target>
+
+  <target name="tag-version" description="Tags the current version in the javadoc">
+    <replaceregexp byline="true">
+      <regexp pattern="@version[\s]*.*$" />
+      <substitution expression="@version ${version}" />
+      <fileset dir="${src}">
+        <include name="**/*.java" />
+      </fileset>
+      <fileset dir="${test.src}">
+        <include name="**/*.java" />
+      </fileset>
+    </replaceregexp>
+    <replaceregexp byline="true">
+      <regexp pattern="@since[\s]*$" />
+      <substitution expression="@since ${version}" />
+      <fileset dir="${src}">
+        <include name="**/*.java" />
+      </fileset>
+      <fileset dir="${test.src}">
+        <include name="**/*.java" />
+      </fileset>
+    </replaceregexp>
+  </target>
+
+  <target name="docs">
+    <javadoc packagenames="com.j2speed.*" sourcepath="${src}" classpathref="project.classpath" defaultexcludes="yes" destdir="${build}/javadoc" author="true" version="true" use="true" windowtitle="Accessive Framework">
+      <doctitle>
+        <![CDATA[<h1>J2Exec Framework</h1>]]></doctitle>
+    <bottom>
+      <![CDATA[<i>Copyright &#169; 2011 J2Speed. All rights reserved.</i>]]></bottom>
+</javadoc>
+</target>
+
 </project>

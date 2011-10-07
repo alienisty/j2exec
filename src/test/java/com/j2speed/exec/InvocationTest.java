@@ -14,7 +14,8 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
 public class InvocationTest {
-   private static final String CMD_PREFIX = "java -cp bin com.j2speed.exec.";
+   private static final File PWD = new File("classes");
+   private static final String CMD_PREFIX = "java -cp . com.j2speed.exec.";
    private static final String CONCATENATE = CMD_PREFIX + "Concatenate";
    private static final String CONCATENATE_WITH_PWD = CMD_PREFIX + "ConcatenateWithPWD";
    private static final String FOREVER = CMD_PREFIX + "WaitForEver";
@@ -23,7 +24,7 @@ public class InvocationTest {
 
    @Test
    public void testCommandWithNoParameters() {
-      Nothing nothing = using(Nothing.class).compile();
+      Nothing nothing = using(Nothing.class).workIn(PWD).compile();
 
       String actual = nothing.toDo();
       assertEquals(Concatenate.NOTHING, actual);
@@ -31,7 +32,7 @@ public class InvocationTest {
 
    @Test
    public void testCommandWithParameterAndResult() {
-      Concat concatenate = using(Concat.class).compile();
+      Concat concatenate = using(Concat.class).workIn(PWD).compile();
       String actual = concatenate.concat(PREFIX, POSTFIX);
 
       assertEquals(PREFIX + POSTFIX, actual);
@@ -39,7 +40,7 @@ public class InvocationTest {
 
    @Test
    public void testCommandWithVarargsAndResult() {
-      Concat concatenate = using(Concat.class).compile();
+      Concat concatenate = using(Concat.class).workIn(PWD).compile();
 
       String separator = "-";
       String one = "one";
@@ -57,8 +58,8 @@ public class InvocationTest {
    @Test
    @SuppressWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
    public void testCommandWithParametersAndResultAndPWD() {
-      String testCP = (new File("").getAbsolutePath() + File.separator + "bin").replace("\\", "/");
-      String command = CONCATENATE_WITH_PWD.replace("-cp bin", "-cp " + testCP) + " {?} {?}";
+      String testCP = PWD.getAbsolutePath().replace("\\", "/");
+      String command = CONCATENATE_WITH_PWD.replace("-cp .", "-cp " + testCP) + " {?} {?}";
 
       Concat concatenate = using(Concat.class)
                .on("working", String.class, File.class, String.class).run(command).compile();
@@ -71,7 +72,7 @@ public class InvocationTest {
 
    @Test
    public void testCommandWithEscaping() {
-      Concat2 concatenate = using(Concat2.class).compile();
+      Concat2 concatenate = using(Concat2.class).workIn(PWD).compile();
       String actual = concatenate.concat(PREFIX, POSTFIX);
 
       assertEquals("{?}" + PREFIX + POSTFIX, actual);
@@ -80,7 +81,7 @@ public class InvocationTest {
    @Test
    public void testCommandWithQouting() {
       Concat2 concatenate = using(Concat2.class).on("concat", String.class, String.class)
-               .run(CONCATENATE + " \" {?} \" {?}").compile();
+               .run(CONCATENATE + " \" {?} \" {?}").workIn(PWD).compile();
       String prefix = "prefix with spaces";
       String actual = concatenate.concat(prefix, POSTFIX);
 
@@ -89,13 +90,13 @@ public class InvocationTest {
 
    @Test(expected = TimeoutException.class)
    public void testCommandTimeout() {
-      ForEver forEver = using(ForEver.class).timeout(500).compile();
+      ForEver forEver = using(ForEver.class).timeout(500).workIn(PWD).compile();
       forEver.doNothing();
    }
 
    @Test(expected = TimeoutException.class)
    public void testCommandTimeoutAnnotation() {
-      ForEver forEver = using(ForEver.class).compile();
+      ForEver forEver = using(ForEver.class).workIn(PWD).compile();
       forEver.doNothing(500);
    }
 
