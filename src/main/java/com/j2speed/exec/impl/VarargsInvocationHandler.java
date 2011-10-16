@@ -23,7 +23,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * 
  * @author Alessandro Nistico
  */
-public final class VarargsInvocationHandler extends SingleInvocationHandler {
+public final class VarargsInvocationHandler extends MethodInvocationHandler {
    @NonNull
    private final List<String> command;
 

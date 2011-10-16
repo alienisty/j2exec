@@ -10,9 +10,11 @@ import static com.j2speed.exec.impl.OutputPump.pump;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +37,30 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * 
  * @author Alessandro Nistico
  */
-public class SingleInvocationHandler implements InvocationHandler {
+public class MethodInvocationHandler implements InvocationHandler {
+
+   /**
+    * Builder for void results. Discards all output and return {@code null}
+    */
+   private static final ResultBuilder<Void> VOID = new ResultBuilder<Void>() {
+      @Override
+      public void setProcessInput(OutputStream input) {
+      };
+
+      @Override
+      public void process(ByteBuffer buffer) {
+      }
+
+      @Override
+      public void done() {
+      }
+
+      @Override
+      public Void build() {
+         return null;
+      }
+
+   };
 
    private final int normalTermination;
    @NonNull
@@ -61,7 +86,7 @@ public class SingleInvocationHandler implements InvocationHandler {
 
    private final int timeoutIndex;
 
-   public SingleInvocationHandler(@NonNull Method method, long timeout, int normalTermination,
+   public MethodInvocationHandler(@NonNull Method method, long timeout, int normalTermination,
             @CheckForNull ResultBuilderFactory<?> resultBuilderFactory,
             @CheckForNull ErrorBuilderFactory<?> errorBuilderFactory,
             @NonNull ProcessBuilder builder, @NonNull List<Argument> arguments) {
@@ -221,7 +246,7 @@ public class SingleInvocationHandler implements InvocationHandler {
    private ResultBuilder<?> processOutput(Process process, @CheckForNull OutputProcessor output)
             throws InterruptedException {
 
-      ResultBuilder<?> result = ResultBuilder.VOID;
+      ResultBuilder<?> result = VOID;
       if (output == null) {
          if (resultBuilderFactory != null) {
             result = resultBuilderFactory.create();
@@ -230,6 +255,7 @@ public class SingleInvocationHandler implements InvocationHandler {
       }
 
       try {
+         output.setProcessInput(process.getOutputStream());
          pump(process.getInputStream(), output);
       } catch (Throwable th) {
          process.destroy();

@@ -95,7 +95,7 @@ public final class TypeCompiler<T> extends Compiler<T> {
    public T compile() {
       InvocationHandler handler = null;
       if (compilingMethods.size() > 1) {
-         MultiCommandInvocationHanlder multiHandler = new MultiCommandInvocationHanlder();
+         MultiMethodInvocationHanlder multiHandler = new MultiMethodInvocationHanlder();
          for (Map.Entry<Method, MethodCompiler<T>> compilers : compilingMethods.entrySet()) {
             multiHandler.add(compilers.getKey(), compilers.getValue().newHandler());
          }

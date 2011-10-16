@@ -15,7 +15,7 @@ import com.j2speed.exec.ResultBuilderFactory;
  * 
  * @author Alessandro Nistico
  */
-public final class NoArgsInvocationHandler extends SingleInvocationHandler {
+public final class NoArgsInvocationHandler extends MethodInvocationHandler {
 
    public NoArgsInvocationHandler(Method method, long timeout, int normalTermination,
             ResultBuilderFactory<?> resultBuilderFactory,

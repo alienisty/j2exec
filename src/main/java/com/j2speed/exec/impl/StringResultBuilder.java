@@ -6,7 +6,7 @@ import com.j2speed.exec.ResultBuilder;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 
-public class StringResultBuilder extends StringResultBuilderSupport implements
+public class StringResultBuilder extends StringOuputProcessor implements
          ResultBuilder<String> {
 
    public StringResultBuilder() {

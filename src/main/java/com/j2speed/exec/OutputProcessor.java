@@ -1,6 +1,6 @@
 package com.j2speed.exec;
 
-import java.nio.ByteBuffer;
+import java.io.OutputStream;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 
@@ -9,30 +9,17 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * 
  * @author Alessandro Nistico
  */
-public interface OutputProcessor {
+public interface OutputProcessor extends Processor {
    /**
-    * The sink implementation, discards all generated output.
-    */
-   OutputProcessor SINK = new OutputProcessor() {
-      @Override
-      public void process(ByteBuffer buffer) {
-      }
-
-      @Override
-      public void done() {
-      }
-   };
-
-   /**
-    * Process the provided data.
+    * Set the output stream connected to the normal input of the process.
+    * <p>
+    * This method is invoked by the framework before starting processing the output from the running
+    * process.
+    * <p>
+    * {@link OutputProcessor} implementations can use the {@link OutputStream} provided to write
+    * data to the process if necessary.
     * 
-    * @param buffer
-    *           the buffer containing the data. Note that the buffer is passed already flipped.
+    * @param input
     */
-   void process(@NonNull ByteBuffer buffer);
-
-   /**
-    * Invoked when no more output is available.
-    */
-   void done();
+   void setProcessInput(@NonNull OutputStream input);
 }

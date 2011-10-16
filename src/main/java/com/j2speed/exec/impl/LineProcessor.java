@@ -12,7 +12,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * 
  * @author Alessandro Nistico
  */
-public abstract class LineProcessor implements OutputProcessor {
+public abstract class LineProcessor extends BaseOutputProcessor {
    private static final String platformSeparator = System.getProperty("line.separator");
 
    @NonNull

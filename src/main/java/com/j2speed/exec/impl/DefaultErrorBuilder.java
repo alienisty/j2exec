@@ -5,7 +5,9 @@ import java.nio.charset.Charset;
 import com.j2speed.exec.ErrorBuilder;
 import com.j2speed.exec.ExecutionException;
 
-public final class DefaultErrorBuilder extends StringResultBuilderSupport implements ErrorBuilder<ExecutionException> {
+public final class DefaultErrorBuilder extends StringProcessorSupport implements
+         ErrorBuilder<ExecutionException> {
+
    public DefaultErrorBuilder() {
    }
 
@@ -14,8 +16,12 @@ public final class DefaultErrorBuilder extends StringResultBuilderSupport implem
    }
 
    @Override
+   public void done() {
+   }
+
+   @Override
    public ExecutionException build() {
-      if (size() > 0) {
+      if (length() > 0) {
          return new ExecutionException(buildString());
       }
       return null;

@@ -7,5 +7,6 @@ package com.j2speed.exec;
  * 
  * @param <T>
  */
-public interface ErrorBuilder<T extends Throwable> extends ResultBuilder<T> {
+public interface ErrorBuilder<T extends Throwable> extends Processor {
+   T build();
 }

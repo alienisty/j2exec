@@ -133,7 +133,7 @@ public final class MethodCompiler<T> extends Compiler<T> {
       return global.compile();
    }
 
-   SingleInvocationHandler newHandler() {
+   MethodInvocationHandler newHandler() {
       if (command == null || command.isEmpty()) {
          throw new IllegalStateException("No command specified for method " + method);
       }
@@ -143,7 +143,7 @@ public final class MethodCompiler<T> extends Compiler<T> {
       return parseCommand(builder, arguments);
    }
 
-   private SingleInvocationHandler parseCommand(ProcessBuilder builder, List<Argument> arguments) {
+   private MethodInvocationHandler parseCommand(ProcessBuilder builder, List<Argument> arguments) {
       List<String> tokens = builder.command();
 
       boolean quoting = false;
@@ -237,7 +237,7 @@ public final class MethodCompiler<T> extends Compiler<T> {
                   resultBuilderFactory, errorFactory(), builder, arguments);
       }
 
-      return new SingleInvocationHandler(method, timeout(), normalTermination(),
+      return new MethodInvocationHandler(method, timeout(), normalTermination(),
                resultBuilderFactory, errorFactory(), builder, arguments);
    }
 

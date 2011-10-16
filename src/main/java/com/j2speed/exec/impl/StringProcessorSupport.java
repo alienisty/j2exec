@@ -5,17 +5,25 @@ import java.nio.charset.Charset;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 
-class StringResultBuilderSupport {
+/**
+ * Accumulates a {@link String} from the output.
+ * 
+ * @author alex
+ */
+public class StringProcessorSupport {
    @NonNull
    private final Charset charset;
    @NonNull
    private final StringBuilder builder = new StringBuilder(64);
 
-   StringResultBuilderSupport() {
+   /**
+    * A processor that uses the US-ASCII encoding to decode characters from the output byte stream.
+    */
+   public StringProcessorSupport() {
       this(Charset.forName("US-ASCII"));
    }
 
-   StringResultBuilderSupport(@NonNull Charset charset) {
+   public StringProcessorSupport(@NonNull Charset charset) {
       this.charset = charset;
    }
 
@@ -23,18 +31,21 @@ class StringResultBuilderSupport {
       builder.append(charset.decode(buffer).array());
    }
 
-   public void done() {
-   }
-
+   /**
+    * Clears and reset the content of the processor.
+    */
    public void reset() {
       builder.delete(0, builder.length());
    }
 
-   int size() {
+   /**
+    * @return the current length of the building string.
+    */
+   public int length() {
       return builder.length();
    }
 
-   String buildString() {
+   public String buildString() {
       return builder.toString();
    }
 }
